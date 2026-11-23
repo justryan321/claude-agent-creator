@@ -6,7 +6,7 @@
 <title>My Agents</title>
 <script>
   /* Apply the saved theme choice before the page paints, to avoid a flash. */
-  try { const t = localStorage.getItem("my-agents-theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch (e) {}
+  try { const t = localStorage.getItem("agent-builder-theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch (e) {}
 </script>
 <style>
   :root {
@@ -208,11 +208,11 @@ Object.assign(ICONS, {
   monitor: '<rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/>'
 });
 
-/* Theme: "system" follows the device setting; "light"/"dark" override it. Saved per browser. */
+/* Theme: "system" follows the device setting; "light"/"dark" override it. Saved per browser, shared with the Flow Preview. */
 function currentTheme() { return document.documentElement.dataset.theme || "system"; }
 function setTheme(t) {
   if (t === "system") delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = t;
-  try { if (t === "system") localStorage.removeItem("my-agents-theme"); else localStorage.setItem("my-agents-theme", t); } catch (e) {}
+  try { if (t === "system") localStorage.removeItem("agent-builder-theme"); else localStorage.setItem("agent-builder-theme", t); } catch (e) {}
 }
 function themeToggle() {
   const g = el("div", "theme"); g.setAttribute("role", "group"); g.setAttribute("aria-label", "Color theme");

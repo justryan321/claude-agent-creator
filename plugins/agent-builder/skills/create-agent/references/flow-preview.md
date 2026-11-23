@@ -2,7 +2,7 @@
 
 Once the interview is done, and before the test drive and before any files are created, show the user a **visual flow diagram** of how their agent will work and what happens next. Non-technical users understand a picture far better than a list of settings, and it's the cheapest moment to catch a misunderstanding.
 
-The diagram comes from a fixed, polished template (`assets/flow-template.html`), filled with a small JSON spec. Don't hand-draw a new design each time; fill the template so every preview looks consistent.
+The diagram comes from a fixed, polished template (`assets/flow-template.html`), filled with a small JSON spec. It adapts to phones and has a System / Light / Dark theme switch, shared with the My Agents dashboard. Don't hand-draw a new design each time; fill the template so every preview looks consistent.
 
 ## 1. Write the flow spec
 
