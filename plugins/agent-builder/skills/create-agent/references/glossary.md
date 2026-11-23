@@ -22,4 +22,5 @@ Use these explanations the first time a term comes up or whenever the user asks 
 | **`.env` file** | A small private settings file where your API key is stored so the program can find it. |
 | **Folder paths** (`~/.claude/agents/`) | Where a file lives on your computer. `~` means your home folder. |
 | **Data export** | A download of all your past Claude chats that you can request in Settings. Useful for reusing old conversations. |
+| **My Agents** | Your list of every agent you've built with the builder: what each does, where it lives, and how its tests went. Say *my agents* to see it. |
 | **Model** | Which Claude "brain" the agent uses. Bigger models are smarter, smaller ones are faster and cheaper. The default is fine for most people. |

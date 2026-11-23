@@ -23,6 +23,14 @@ Agent Creator is a Claude plugin. Once it's installed, run one command and Claud
 
 After your agent is built, the builder writes **6–8 test cases** for it: everyday requests, tricky inputs, and things it should refuse or ask about first. It runs them against the real agent and shows ✅/❌ results with plain-language fixes. **You can add your own tests too:** give it something you'd ask and the answer you'd expect back. Tests are saved with your agent, so you can say *"run my tests"* after every change to make sure nothing broke.
 
+### Keeping track of your agents
+
+Every agent you build is added to **My Agents** automatically. Run `/agent-builder:my-agents`, or just say *"my agents"*, to see how many you have and what each one does, in a chat table and a visual dashboard:
+
+<p align="center"><img src="docs/my-agents.png" alt="My Agents dashboard showing agent cards with what each does, where it lives, and test status" width="720"></p>
+
+From there you can update an agent, run its tests, tag it (#work, #personal), add notes, archive agents you don't use, or delete them (always with confirmation). In Claude Code the list is saved for you in `~/.claude/agent-builder/my-agents.json`. On claude.ai, the builder hands you an updated `my-agents.json` to keep in a "My Agents" Project.
+
 ### Reusing an existing chat
 
 The easiest way to reuse a chat is the **Context Capture Prompt**. The builder gives you a short message to paste into your old chat. That chat writes an "Agent Brief" of everything you discussed, and you paste the brief back into the builder. You can also paste conversations directly, upload files, or upload a Claude/ChatGPT data export (the builder includes a tool that finds the right chat inside the export). In Claude Code, it can also reuse your past Claude Code sessions.
@@ -56,7 +64,7 @@ On older versions of Claude Code, add the marketplace first, then install:
 ### claude.ai (skill upload)
 
 1. Download this repository (green **Code** button → **Download ZIP**) and unzip it.
-2. Zip the folder `plugins/agent-builder/skills/create-agent` by itself.
+2. Zip the folder `plugins/agent-builder/skills/create-agent` by itself. Optionally, zip `plugins/agent-builder/skills/my-agents` separately too, to get the *my agents* list.
 3. On claude.ai, open **Settings → Capabilities → Skills** and upload that zip.
 4. In any chat, say *"Help me create my own agent."*
 
@@ -84,6 +92,7 @@ Customer Support Helper · Research Assistant · Writing Coach & Editor · Meeti
 .claude-plugin/marketplace.json          # makes this repo installable as a plugin marketplace
 plugins/agent-builder/
 ├── .claude-plugin/plugin.json           # plugin manifest
+├── skills/my-agents/SKILL.md            # /agent-builder:my-agents: list, dashboard, tag, archive, delete
 └── skills/create-agent/
     ├── SKILL.md                         # the builder's flow (interview → card → flow preview → test drive → files → tests)
     ├── references/
@@ -96,10 +105,12 @@ plugins/agent-builder/
     │   ├── test-cases.md                # generating, collecting, running, and grading tests
     │   └── glossary.md                  # plain-language explanations of technical terms
     ├── assets/
-    │   └── flow-template.html           # the Flow Preview diagram template
+    │   ├── flow-template.html           # the Flow Preview diagram template
+    │   └── dashboard-template.html      # the My Agents dashboard template
     └── scripts/
         ├── extract_conversations.py     # reads Claude/ChatGPT exports and Claude Code sessions
         ├── render_flow.py               # renders the Flow Preview to an HTML page
+        ├── agent_registry.py            # the My Agents registry and dashboard
         └── run_tests_standalone.py      # test runner copied into standalone apps
 ```
 

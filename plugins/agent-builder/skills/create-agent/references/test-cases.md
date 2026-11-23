@@ -104,7 +104,7 @@ Show a compact report in chat:
 ...
 ```
 
-Save the same report to `tests/test-report.md` with the date, method (live / simulated / manual), and the full answers.
+Save the same report to `tests/test-report.md` with the date, method (live / simulated / manual), and the full answers. Then update the agent's entry in **My Agents** so the dashboard shows its health: `python3 <skill-dir>/scripts/agent_registry.py set-tests <agent-id> --passed N --total N --method live|simulated|manual` (on claude.ai, update `tests` in `my-agents.json`).
 
 Then, for each failure:
 1. Suggest a specific fix: an instruction change, a tool change, or an adjustment to the test if the expectation itself was unreasonable. Explain it in one plain sentence.
