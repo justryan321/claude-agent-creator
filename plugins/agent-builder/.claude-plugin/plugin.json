@@ -1,0 +1,11 @@
+{
+  "name": "agent-builder",
+  "version": "0.1.0",
+  "description": "A friendly, step-by-step builder for your own Claude agent. No coding needed: answer a few questions, test-drive the agent in chat, and get ready-to-use files.",
+  "author": {
+    "name": "justryan321"
+  },
+  "homepage": "https://github.com/justryan321/claude-agent-creator",
+  "repository": "https://github.com/justryan321/claude-agent-creator",
+  "keywords": ["agent", "builder", "no-code", "subagent", "skill", "agent-sdk"]
+}

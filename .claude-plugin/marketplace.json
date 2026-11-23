@@ -1,0 +1,14 @@
+{
+  "name": "claude-agent-creator",
+  "description": "A guided, no-code builder that interviews you and creates your own Claude agent.",
+  "owner": {
+    "name": "justryan321"
+  },
+  "plugins": [
+    {
+      "name": "agent-builder",
+      "source": "./plugins/agent-builder",
+      "description": "Run /agent-builder:create-agent and Claude interviews you, lets you test-drive your agent, then writes all the files you need."
+    }
+  ]
+}
