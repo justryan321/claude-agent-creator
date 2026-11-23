@@ -6,6 +6,31 @@ Generate the files for every destination the user chose. Put all of them in one 
 
 Keep `flow.json` and `agent-flow.html` from the Flow Preview step (`flow-preview.md`) in the `<agent-id>/` folder, updated to the final design. Mention it in HOW-TO-USE.md: "Open `agent-flow.html` in your browser for a picture of how your agent works." Without file tools, the artifact or the text diagram shown earlier is enough.
 
+## Register the agent (My Agents)
+
+Every agent you build or update is recorded in the user's **My Agents** registry, so they can keep track of everything they've made (`/agent-builder:my-agents`). Write this entry to a temporary JSON file and run `python3 <skill-dir>/scripts/agent_registry.py upsert <entry.json>` in Claude Code. On claude.ai, add or replace the entry with the same `id` in the user's `my-agents.json` (`{"schema": 1, "agents": [...]}`), set `created`, `updated` (`YYYY-MM-DDTHH:MM`), and `version` yourself, and hand the file back.
+
+```json
+{
+  "id": "<agent-id>",
+  "name": "<Display Name>",
+  "emoji": "<same emoji as the Flow Preview>",
+  "tagline": "<Agent Card: Job>",
+  "for": "<Agent Card: For>",
+  "abilities": ["<Agent Card: Can, as short plain items>"],
+  "destinations": [
+    {"type": "subagent | skill | claude-ai-project | standalone-app", "location": "<installed path, folder, or 'claude.ai Project: <name>'>"}
+  ],
+  "brief_path": "<absolute path to agent-brief.md, or 'kept by user' on claude.ai>",
+  "tags": [],
+  "notes": ""
+}
+```
+
+- Use one `destinations` item per place it lives, with the real install path when you installed it.
+- Leave `tests` out; Phase 6 records them with `set-tests`. On an update, tags, notes, and the creation date are kept automatically.
+- Offer one or two tags based on the job ("work", "business", "personal"), only if the user wants them.
+
 ## Always included: tests
 
 A `tests/` folder with `test-cases.json` and `test-report.md`, plus `test-checklist.md` for Claude.ai Projects (see `test-cases.md`). For the standalone app, copy `scripts/run_tests_standalone.py` unchanged to `tests/run_tests.py`. In HOW-TO-USE.md, add a short "Check it still works" section that says how to re-run the tests.
@@ -363,6 +388,7 @@ Your agent's behavior lives in its instructions (<file name>). Edit that text in
 - [ ] HOW-TO-USE.md has steps for every chosen destination and 2–3 example requests.
 - [ ] No API keys, passwords, or personal data are written into any file (re-check imported context).
 - [ ] `agent-brief.md` is included and matches the final instructions.
+- [ ] The agent is registered in My Agents (`upsert` done, or `my-agents.json` handed back on claude.ai).
 - [ ] `tests/test-cases.json` exists (6–8 generated cases plus any from the user), and the latest results are in `tests/test-report.md`.
 - [ ] The Flow Preview was approved, and `agent-flow.html` (if files are possible) matches the final design.
 - [ ] If installed: the file is in the right folder and you told the user the exact first thing to type.

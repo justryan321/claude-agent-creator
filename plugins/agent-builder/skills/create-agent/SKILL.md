@@ -28,7 +28,7 @@ Default the "where will it live" recommendation to match: **claude.ai → Claude
 
 ## Phase 1 · Welcome and the starting point
 
-Send a short welcome (3 sentences max): you'll build their agent together in about 5–10 minutes, they'll get to try it before it's finished, and nothing is final. Then offer these starts, in this order:
+Send a short welcome (3 sentences max): you'll build their agent together in about 5–10 minutes, they'll get to try it before it's finished, and nothing is final. If the user already has agents in **My Agents** (in Claude Code, check with `scripts/agent_registry.py list`; on claude.ai, only if they shared `my-agents.json`), add one line to the welcome: "You've built 4 agents so far. Say **my agents** anytime to see them." Then offer these starts, in this order:
 
 1. **📎 "I already have something to start from"** *(Recommended if they mention past work)*: an existing Claude chat, documents, notes, instructions from another tool (like a custom GPT), or an agent they built before. → **Phase 1b · Bring your own context**
 2. **📋 Start from a template.** Show names and one-liners from `references/templates.md`. Pre-fill the Agent Card from the template; ask only the "Still ask" items.
@@ -119,6 +119,7 @@ Generate the files exactly as specified in `references/output-formats.md`, inclu
 - **In Claude Code:** ask: "Want me to install it for you (recommended), or just save the files in a folder?" For install, ask "Just for you everywhere, or only in this project?" Check the target first, and never overwrite an existing file without asking. Otherwise write to `./<agent-id>/`.
 - **Without file tools:** present each file as a separate code block with its filename as a heading, the most important one (what they paste) first.
 - Run the checklist at the end of `references/output-formats.md` before presenting.
+- **Register the agent in My Agents** (see "Register the agent" in `references/output-formats.md`). In Claude Code, run `scripts/agent_registry.py upsert <entry.json>`. On claude.ai, add or update the entry in the user's `my-agents.json` (start a new one if they don't have it) and hand the file back with the other files.
 
 ## Phase 6 · Test the finished agent
 
@@ -128,7 +129,7 @@ Once the files are built (and installed, if chosen), check that the real agent w
 2. **Offer the user's own tests:** "Want to add your own test? Give me something you'd ask it and the answer you'd expect back. A full answer or just 'it should…' both work." Convert whatever they give into a case and show the expectations so they can correct them. They can add as many as they like.
 3. **Run them** against the real agent, each in a fresh context and in **test mode** (nothing changes for real): the installed subagent or skill in Claude Code, `tests/run_tests.py` for the standalone app, or a clearly labeled simulation plus a manual checklist for Claude.ai Projects.
 4. **Report** with ✅ / ❌ / ⚪, quoting what went wrong for each failure and a suggested fix in plain words. With the user's OK, apply the fixes, then **re-run all tests**, up to 3 rounds.
-5. Save `tests/test-cases.json` and `tests/test-report.md` with the agent's files.
+5. Save `tests/test-cases.json` and `tests/test-report.md` with the agent's files, and record the result in My Agents: `scripts/agent_registry.py set-tests <agent-id> --passed N --total N --method live|simulated|manual` (on claude.ai, update the `tests` field in `my-agents.json`).
 
 If the user wants to skip testing, let them, and mention they can say **"run my tests"** anytime.
 
@@ -138,12 +139,15 @@ If the user wants to skip testing, let them, and mention they can say **"run my 
 2. ▶️ How to start using it in 2–4 steps, and one example to try first.
 3. 💡 One or two ideas to make it better later (for example "add your price list as knowledge").
 4. 🔁 "Anytime you want to change it, run the Agent Builder again and say **'update my agent'**, and share `agent-brief.md` or the agent file. Say **'run my tests'** or **'add a test'** to check it again."
+5. 🗂️ "See all your agents anytime with **/agent-builder:my-agents** (or just say *my agents*)."
 
 ## Updating an existing agent
 
-If the user wants to change an agent they already have: load it as context (`agent-brief.md`, a subagent `.md` file, a `SKILL.md`, Project instructions, or an installed agent under `~/.claude/agents/` or `.claude/agents/` in Claude Code). Rebuild the Agent Card from it, ask what they want to change, then continue at Phase 3 → Flow Preview → test drive → build → tests. Keep the same id unless they want a new one. After any change, re-run the existing tests in `tests/test-cases.json` so nothing that used to work breaks.
+If the user wants to change an agent they already have: find it in My Agents by name or id (its `brief_path` points at `agent-brief.md`), or load it as context (`agent-brief.md`, a subagent `.md` file, a `SKILL.md`, Project instructions, or an installed agent under `~/.claude/agents/` or `.claude/agents/` in Claude Code). Rebuild the Agent Card from it, ask what they want to change, then continue at Phase 3 → Flow Preview → test drive → build → tests. Keep the same id unless they want a new one. After any change, re-run the existing tests in `tests/test-cases.json` so nothing that used to work breaks.
 
 If the user just wants to **run or add tests** for an existing agent, load the agent and its `tests/test-cases.json` and go straight to Phase 6.
+
+After any update, run `upsert` again with the same id. The registry keeps the creation date, raises the version number, and keeps existing tags and notes.
 
 ## Safety and honesty
 

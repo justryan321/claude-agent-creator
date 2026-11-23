@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My Agents</title>
+<style>
+  :root {
+    --bg: #f7f5f2;
+    --bg-accent: #efe9e1;
+    --surface: #ffffff;
+    --text: #1f1d1a;
+    --muted: #6b665e;
+    --line: #ddd6cc;
+    --shadow: 0 1px 2px rgba(31,29,26,.06), 0 6px 20px rgba(31,29,26,.06);
+    --brand: #c96442;
+    --brand-soft: #f6e3da;
+    --input: #2f6fd6;   --input-soft: #e3edfc;
+    --think: #7a4fd0;   --think-soft: #eee6fb;
+    --tool: #0f8f86;    --tool-soft: #dcf3f1;
+    --guard: #b7791f;   --guard-soft: #fbefd9;
+    --output: #2f8a46;  --output-soft: #e0f2e5;
+    --handoff: #c2415d; --handoff-soft: #fbe3e8;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #1b1a18; --bg-accent: #24221f; --surface: #2a2825; --text: #f1ede7; --muted: #a8a196;
+      --line: #3d3a35; --shadow: 0 1px 2px rgba(0,0,0,.3), 0 6px 20px rgba(0,0,0,.25);
+      --brand: #e08a69; --brand-soft: #3d2a22;
+      --input: #7aa7f0;   --input-soft: #1f2c42;
+      --think: #b196ee;   --think-soft: #2d2540;
+      --tool: #4cc4ba;    --tool-soft: #17332f;
+      --guard: #e0ad5c;   --guard-soft: #3a2f1c;
+      --output: #6cc283;  --output-soft: #1c3322;
+      --handoff: #ee7d95; --handoff-soft: #3e2028;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #1b1a18; --bg-accent: #24221f; --surface: #2a2825; --text: #f1ede7; --muted: #a8a196;
+    --line: #3d3a35; --shadow: 0 1px 2px rgba(0,0,0,.3), 0 6px 20px rgba(0,0,0,.25);
+    --brand: #e08a69; --brand-soft: #3d2a22;
+    --input: #7aa7f0;   --input-soft: #1f2c42;
+    --think: #b196ee;   --think-soft: #2d2540;
+    --tool: #4cc4ba;    --tool-soft: #17332f;
+    --guard: #e0ad5c;   --guard-soft: #3a2f1c;
+    --output: #6cc283;  --output-soft: #1c3322;
+    --handoff: #ee7d95; --handoff-soft: #3e2028;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: radial-gradient(1200px 500px at 10% -10%, var(--bg-accent), transparent 60%), var(--bg);
+    color: var(--text);
+    font: 15px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 32px 16px 48px; }
+  svg.i { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+  svg.i.sm { width: 14px; height: 14px; }
+
+  header { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+  .logo { width: 56px; height: 56px; border-radius: 16px; display: grid; place-items: center; flex: none;
+    background: linear-gradient(145deg, var(--brand-soft), var(--surface)); border: 1px solid var(--line); box-shadow: var(--shadow); color: var(--brand); }
+  .logo svg.i { width: 28px; height: 28px; }
+  h1 { margin: 0; font-size: clamp(22px, 4vw, 30px); letter-spacing: -.01em; line-height: 1.15; }
+  header p { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
+
+  .tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 20px; }
+  .tile { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; box-shadow: var(--shadow); }
+  .tile .n { font-size: 28px; font-weight: 700; line-height: 1.1; letter-spacing: -.02em; }
+  .tile .l { font-size: 13px; color: var(--muted); }
+  .tile .sub { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .tile .sub span { font-size: 12px; color: var(--muted); background: var(--bg-accent); border-radius: 6px; padding: 1px 7px; }
+  .tile.ok .n { color: var(--output); }
+  .tile.warn .n { color: var(--handoff); }
+
+  .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 16px; }
+  .search { flex: 1 1 260px; display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--line);
+    border-radius: 12px; padding: 8px 12px; color: var(--muted); }
+  .search input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--text); font: inherit; }
+  .search:focus-within { border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-soft); }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { border: 1px solid var(--line); background: var(--surface); color: var(--text); border-radius: 999px; padding: 4px 11px;
+    font: inherit; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; }
+  .chip:hover { border-color: var(--muted); }
+  .chip[aria-pressed="true"] { background: var(--brand); border-color: var(--brand); color: #fff; }
+  .chip:focus-visible, .search input:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 16px; box-shadow: var(--shadow);
+    display: flex; flex-direction: column; gap: 12px; }
+  .card.archived { opacity: .7; border-style: dashed; }
+  .top { display: flex; gap: 12px; align-items: flex-start; }
+  .emoji { width: 46px; height: 46px; border-radius: 13px; display: grid; place-items: center; font-size: 24px; flex: none; background: var(--bg-accent); }
+  .top h3 { margin: 0; font-size: 16.5px; line-height: 1.3; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+  .top p { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
+  .pill { font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; border-radius: 999px; padding: 1px 8px; }
+  .pill.arch { background: var(--bg-accent); color: var(--muted); }
+
+  .row { display: flex; flex-wrap: wrap; gap: 6px; }
+  .dest { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 600; border-radius: 8px; padding: 3px 8px;
+    background: var(--k-soft); color: var(--k); }
+  .k-input   { --k: var(--input);   --k-soft: var(--input-soft); }
+  .k-think   { --k: var(--think);   --k-soft: var(--think-soft); }
+  .k-tool    { --k: var(--tool);    --k-soft: var(--tool-soft); }
+  .k-output  { --k: var(--output);  --k-soft: var(--output-soft); }
+  .abil { font-size: 12.5px; color: var(--muted); border: 1px solid var(--line); border-radius: 8px; padding: 2px 8px; }
+  .tag { font-size: 12.5px; color: var(--brand); background: var(--brand-soft); border-radius: 8px; padding: 2px 8px; }
+  .note { font-size: 13.5px; color: var(--muted); font-style: italic; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+  .foot { margin-top: auto; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px;
+    border-top: 1px solid var(--line); padding-top: 10px; font-size: 12.5px; color: var(--muted); }
+  .tests { display: inline-flex; align-items: center; gap: 5px; font-weight: 700; border-radius: 8px; padding: 2px 8px; }
+  .tests.pass { background: var(--output-soft); color: var(--output); }
+  .tests.fail { background: var(--handoff-soft); color: var(--handoff); }
+  .tests.none { background: var(--bg-accent); color: var(--muted); font-weight: 600; }
+  .ask { font-size: 12.5px; color: var(--muted); }
+  .ask code { white-space: nowrap; display: inline-block; margin: 2px 0; font: 12px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--bg-accent); border-radius: 6px; padding: 1px 6px; color: var(--text); }
+
+  .empty { text-align: center; background: var(--surface); border: 1px dashed var(--line); border-radius: 16px; padding: 40px 20px; color: var(--muted); }
+  .empty .big { font-size: 40px; }
+  .empty h2 { color: var(--text); margin: 8px 0 4px; font-size: 19px; }
+  .empty code { font: 13px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--bg-accent); border-radius: 6px; padding: 2px 7px; color: var(--text); }
+  .count { font-size: 13px; color: var(--muted); margin: 0 0 10px; }
+
+  @media (max-width: 760px) {
+    .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+
+<script>
+/* The Agent Builder replaces everything between the two markers with the registry (JSON). */
+const DATA = /*AGENTS_DATA_START*/{
+  "generated": "2026-11-23T09:00",
+  "agents": [
+    {"id": "page-summarizer", "name": "Page Summarizer", "emoji": "📄", "tagline": "Reviews a web page, summarizes it, and lists the important key items.",
+     "abilities": ["Read web pages", "Read files"], "destinations": [{"type": "subagent", "location": "~/.claude/agents/page-summarizer.md"}],
+     "tests": {"passed": 7, "total": 7, "last_run": "2026-11-23T08:40", "method": "live"}, "tags": ["work"], "notes": "", "status": "active",
+     "created": "2026-11-20T10:00", "updated": "2026-11-23T08:40", "version": 2}
+  ]
+}/*AGENTS_DATA_END*/;
+
+const ICONS = {
+  message: '<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/>',
+  user: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>',
+  users: '<circle cx="9" cy="8" r="3.5"/><path d="M2 20c0-3.5 3-5.5 7-5.5s7 2 7 5.5"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7"/><path d="M18 14.8c2.4.6 4 2.4 4 5.2"/>',
+  book: '<path d="M4 4.5A1.5 1.5 0 0 1 5.5 3H20v15H5.5A1.5 1.5 0 0 0 4 19.5z"/><path d="M4 19.5A1.5 1.5 0 0 0 5.5 21H20"/>',
+  globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c3 3.5 3 14.5 0 18c-3-3.5-3-14.5 0-18z"/>',
+  file: '<path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/>',
+  search: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>',
+  plug: '<path d="M9 2v6M15 2v6"/><path d="M6 8h12v3a6 6 0 0 1-12 0z"/><path d="M12 17v5"/>',
+  terminal: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9l3 3-3 3M13 15h4"/>',
+  sparkles: '<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/>',
+  shield: '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>',
+  alert: '<path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18h.01"/>',
+  help: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.7M12 17h.01"/>',
+  list: '<path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/>',
+  check: '<circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/>',
+  edit: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13 7l4 4"/>',
+  mail: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>',
+  calendar: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  chart: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+  eye: '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+  play: '<circle cx="12" cy="12" r="9"/><path d="M10 8l6 4-6 4z"/>',
+  package: '<path d="M12 2l9 5v10l-9 5-9-5V7z"/><path d="M3 7l9 5 9-5M12 12v10"/>',
+  download: '<path d="M12 3v12M7 10l5 5 5-5M4 21h16"/>',
+  rocket: '<path d="M14 4c3-1 6-1 6-1s0 3-1 6l-7 7-5-5z"/><path d="M9 10H5l3-3h4M14 15v4l3-3v-4"/><path d="M5 15c-1.5 1.5-2 5-2 5s3.5-.5 5-2"/>',
+  handoff: '<circle cx="9" cy="8" r="3.5"/><path d="M2 20c0-3.5 3-5.5 7-5.5 1.5 0 2.8.3 4 .8"/><path d="M16 15h6M19 12l3 3-3 3"/>',
+  chevron: '<path d="M9 6l6 6-6 6"/>'
+};
+
+const DEST = {
+  "claude-ai-project": {label: "Claude.ai Project", icon: "message", kind: "input"},
+  "subagent":          {label: "Claude Code subagent", icon: "users", kind: "think"},
+  "skill":             {label: "Claude skill", icon: "sparkles", kind: "tool"},
+  "standalone-app":    {label: "Standalone app", icon: "terminal", kind: "output"}
+};
+
+function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+function icon(name, cls) {
+  const s = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  s.setAttribute("viewBox", "0 0 24 24"); s.setAttribute("class", "i" + (cls ? " " + cls : "")); s.setAttribute("aria-hidden", "true");
+  s.innerHTML = ICONS[name] || ICONS.sparkles; return s;
+}
+function fmtDate(s) {
+  if (!s) return "";
+  const d = new Date(s.length <= 16 ? s + ":00" : s);
+  return isNaN(d) ? s : d.toLocaleDateString(undefined, {year: "numeric", month: "short", day: "numeric"});
+}
+function testState(a) {
+  const t = a.tests || {};
+  if (!t.total) return "none";
+  return t.passed === t.total ? "pass" : "fail";
+}
+
+const agents = (DATA.agents || []).slice().sort((a, b) => {
+  const sa = a.status === "archived" ? 1 : 0, sb = b.status === "archived" ? 1 : 0;
+  return sa - sb || String(b.updated || "").localeCompare(String(a.updated || ""));
+});
+const state = {q: "", status: "active", dest: null, tag: null};
+
+function render() {
+  const app = document.getElementById("app");
+  app.textContent = "";
+
+  const head = el("header");
+  const logo = el("div", "logo"); logo.append(icon("users"));
+  const ht = el("div"); ht.append(el("h1", null, "My Agents"));
+  ht.append(el("p", null, "Everything you've built with the Agent Builder" + (DATA.generated ? " · updated " + fmtDate(DATA.generated) : "")));
+  head.append(logo, ht); app.append(head);
+
+  if (!agents.length) {
+    const e = el("div", "empty"); e.append(el("div", "big", "🗂️"), el("h2", null, "No agents yet"));
+    const p = el("p"); p.append(document.createTextNode("Build your first one with "), el("code", null, "/agent-builder:create-agent"), document.createTextNode(", and it will show up here."));
+    e.append(p); app.append(e); return;
+  }
+
+  // Summary tiles
+  const active = agents.filter(a => a.status !== "archived");
+  const archived = agents.length - active.length;
+  const tested = active.filter(a => testState(a) !== "none");
+  const passing = tested.filter(a => testState(a) === "pass").length;
+  const destCounts = {};
+  active.forEach(a => new Set((a.destinations || []).map(d => d.type)).forEach(t => { destCounts[t] = (destCounts[t] || 0) + 1; }));
+  const tiles = el("div", "tiles");
+  const tile = (n, l, cls, subs) => { const t = el("div", "tile" + (cls ? " " + cls : "")); t.append(el("div", "n", String(n)), el("div", "l", l));
+    if (subs && subs.length) { const s = el("div", "sub"); subs.forEach(x => s.append(el("span", null, x))); t.append(s); } return t; };
+  tiles.append(
+    tile(agents.length, "agents in total", "", archived ? [archived + " archived"] : []),
+    tile(active.length, "active", "", []),
+    tile(tested.length ? passing + "/" + tested.length : "–", "passing all tests", tested.length && passing < tested.length ? "warn" : (tested.length ? "ok" : ""),
+         active.length - tested.length ? [(active.length - tested.length) + " not tested yet"] : []),
+    tile(Object.keys(destCounts).length, "places they live", "", Object.entries(destCounts).map(([k, v]) => v + " " + (DEST[k] ? DEST[k].label : k)))
+  );
+  app.append(tiles);
+
+  // Toolbar
+  const bar = el("div", "toolbar");
+  const search = el("label", "search"); search.append(icon("search", "sm"));
+  const input = el("input"); input.type = "search"; input.placeholder = "Search by name, job, tag, or note"; input.value = state.q;
+  input.setAttribute("aria-label", "Search agents");
+  input.addEventListener("input", () => { state.q = input.value; drawCards(); });
+  search.append(input); bar.append(search);
+  const chips = el("div", "chips");
+  const chip = (label, pressed, onClick, ic) => { const c = el("button", "chip"); c.type = "button"; if (ic) c.append(icon(ic, "sm"));
+    c.append(document.createTextNode(label)); c.setAttribute("aria-pressed", pressed ? "true" : "false"); c.addEventListener("click", onClick); return c; };
+  [["active", "Active"], ["archived", "Archived"], ["all", "All"]].forEach(([v, l]) =>
+    chips.append(chip(l, state.status === v, () => { state.status = v; render(); })));
+  Object.keys(destCounts).forEach(k => chips.append(chip(DEST[k] ? DEST[k].label : k, state.dest === k,
+    () => { state.dest = state.dest === k ? null : k; render(); }, DEST[k] && DEST[k].icon)));
+  const tags = [...new Set(agents.flatMap(a => a.tags || []))].sort();
+  tags.forEach(t => chips.append(chip("#" + t, state.tag === t, () => { state.tag = state.tag === t ? null : t; render(); })));
+  bar.append(chips); app.append(bar);
+
+  const count = el("p", "count"); app.append(count);
+  const grid = el("div", "grid"); app.append(grid);
+
+  function drawCards() {
+    grid.textContent = "";
+    const q = state.q.trim().toLowerCase();
+    const shown = agents.filter(a =>
+      (state.status === "all" || (state.status === "archived") === (a.status === "archived")) &&
+      (!state.dest || (a.destinations || []).some(d => d.type === state.dest)) &&
+      (!state.tag || (a.tags || []).includes(state.tag)) &&
+      (!q || [a.name, a.tagline, a.id, a.notes, a.for, ...(a.tags || []), ...(a.abilities || [])].join(" ").toLowerCase().includes(q)));
+    count.textContent = shown.length === 1 ? "Showing 1 agent" : "Showing " + shown.length + " agents";
+    if (!shown.length) { const e = el("div", "empty"); e.append(el("div", "big", "🔍"), el("h2", null, "No agents match"), el("p", null, "Try a different search or filter."));
+      grid.append(e); return; }
+    shown.forEach(a => grid.append(card(a)));
+  }
+  drawCards();
+}
+
+function card(a) {
+  const c = el("article", "card" + (a.status === "archived" ? " archived" : ""));
+  const top = el("div", "top");
+  top.append(el("div", "emoji", a.emoji || "🤖"));
+  const t = el("div"); const h = el("h3", null, a.name || a.id);
+  if (a.status === "archived") h.append(el("span", "pill arch", "Archived"));
+  t.append(h); if (a.tagline) t.append(el("p", null, a.tagline));
+  top.append(t); c.append(top);
+
+  const dests = el("div", "row");
+  (a.destinations || []).forEach(d => { const m = DEST[d.type] || {label: d.type, icon: "package", kind: "think"};
+    const b = el("span", "dest k-" + m.kind); b.title = d.location || ""; b.append(icon(m.icon, "sm"), document.createTextNode(m.label)); dests.append(b); });
+  if (dests.childNodes.length) c.append(dests);
+
+  if ((a.abilities || []).length) { const r = el("div", "row"); a.abilities.forEach(x => r.append(el("span", "abil", x))); c.append(r); }
+  if ((a.tags || []).length) { const r = el("div", "row"); a.tags.forEach(x => r.append(el("span", "tag", "#" + x))); c.append(r); }
+  if (a.notes) c.append(el("div", "note", a.notes));
+
+  const foot = el("div", "foot");
+  const st = testState(a), ts = a.tests || {};
+  const tb = el("span", "tests " + st);
+  tb.append(icon(st === "pass" ? "check" : st === "fail" ? "alert" : "help", "sm"),
+    document.createTextNode(st === "none" ? "Not tested" : ts.passed + "/" + ts.total + " tests" + (ts.method === "simulated" ? " (simulated)" : "")));
+  const when = el("span", null, "Updated " + fmtDate(a.updated) + (a.version > 1 ? " · v" + a.version : ""));
+  foot.append(tb, when); c.append(foot);
+
+  const ask = el("div", "ask"); ask.append(document.createTextNode("Ask the builder: "), el("code", null, "update " + a.id),
+    document.createTextNode(" · "), el("code", null, st === "none" ? "add tests for " + a.id : "run tests for " + a.id));
+  c.append(ask);
+  return c;
+}
+
+render();
+</script>
+</body>
+</html>
