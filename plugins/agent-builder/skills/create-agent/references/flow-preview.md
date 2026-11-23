@@ -94,7 +94,18 @@ flowchart TD
 
 Ask: "Here's how **<Display Name>** will work. Does this look right? Reply **looks good** to try it out, or tell me what to change."
 
-- On changes: update the Agent Card and the spec, re-render, and show it again. Keep it quick: only re-show the diagram, not the whole explanation.
+- On changes: update the Agent Card and the spec, re-render, and show it again **with the changes highlighted**, so the user can see their feedback was applied. Keep it quick: only re-show the diagram, not the whole explanation.
+  - **Claude Code:** before editing, copy the current spec to `./<agent-id>/flow.prev.json`, then render with `--previous`:
+    ```bash
+    python3 <skill-dir>/scripts/render_flow.py ./<agent-id>/flow.json ./<agent-id>/agent-flow.html --previous ./<agent-id>/flow.prev.json --open
+    ```
+    The script tags new and changed steps ("New" / "Updated"), lists removed steps, marks new "at a glance" items, and shows a short "what changed" banner.
+  - **Artifact (no script):** mark the changes in the spec yourself before filling the template:
+    - `"change": "new"` or `"change": "updated"` on each affected step
+    - `"removed_steps": ["<old step title>", ...]`
+    - `"glance_new": {"wont": ["<new item>"]}` (keys `can`, `wont`, `asks_first`)
+    - `"revision": <version number>`
+  - In the chat text version, put `(new)` or `(changed)` after those steps.
 - Don't move on to the test drive or build anything until the user approves.
 - In Express mode, still show the preview. It's the user's main chance to catch a wrong assumption.
 - Keep the final `flow.json` and `agent-flow.html` in the agent's output folder (see `output-formats.md`).

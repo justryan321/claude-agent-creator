@@ -2,7 +2,11 @@
 """Render the agent's Flow Preview diagram as a standalone HTML page.
 
 Usage:
-  render_flow.py <flow.json> <output.html> [--open]
+  render_flow.py <flow.json> <output.html> [--previous old-flow.json] [--open]
+
+With --previous, steps that are new or changed since the old version are
+tagged "New" / "Updated", removed steps are listed, and new "at a glance"
+items are marked, so the user can see that their feedback was applied.
 
 <flow.json> follows the spec in references/flow-preview.md. The page is fully
 self-contained (no internet needed) and adapts to light/dark mode and phones.
@@ -43,6 +47,51 @@ def validate(spec: dict) -> list[str]:
     return problems
 
 
+def _norm(text) -> str:
+    return " ".join(str(text or "").lower().split())
+
+
+def _step_sig(step: dict) -> tuple:
+    b = step.get("branch") or {}
+    return (step.get("kind"), step.get("icon"), _norm(step.get("detail")),
+            _norm(b.get("when")), _norm(b.get("then")), b.get("kind"), b.get("icon"))
+
+
+def mark_changes(spec: dict, previous: dict) -> int:
+    """Tag what changed since `previous`. Steps are matched by title, then by position. Returns the number of changes."""
+    old_steps = list(previous.get("steps") or [])
+    by_title = {_norm(s.get("title")): s for s in old_steps}
+    matched = set()
+    changes = 0
+    for i, step in enumerate(spec.get("steps") or []):
+        step.pop("change", None)
+        old = by_title.get(_norm(step.get("title")))
+        if old is None and i < len(old_steps) and id(old_steps[i]) not in matched \
+                and _norm(old_steps[i].get("title")) not in {_norm(x.get("title")) for x in spec["steps"]}:
+            old = old_steps[i]  # same position, renamed
+        if old is None:
+            step["change"] = "new"
+            changes += 1
+            continue
+        matched.add(id(old))
+        if _step_sig(old) != _step_sig(step) or _norm(old.get("title")) != _norm(step.get("title")):
+            step["change"] = "updated"
+            changes += 1
+    removed = [s.get("title", "") for s in old_steps if id(s) not in matched]
+    spec["removed_steps"] = removed
+    changes += len(removed)
+    glance_new = {}
+    for key in ("can", "wont", "asks_first"):
+        before = {_norm(x) for x in (previous.get("glance") or {}).get(key, []) or []}
+        new_items = [x for x in (spec.get("glance") or {}).get(key, []) or [] if _norm(x) not in before]
+        if new_items:
+            glance_new[key] = new_items
+            changes += len(new_items)
+    spec["glance_new"] = glance_new
+    spec["revision"] = int(previous.get("revision", 1)) + 1
+    return changes
+
+
 def render(spec: dict) -> str:
     html = TEMPLATE.read_text(encoding="utf-8")
     a, b = html.index(START) + len(START), html.index(END)
@@ -57,6 +106,7 @@ def main() -> None:
     p.add_argument("spec")
     p.add_argument("output")
     p.add_argument("--open", action="store_true", help="open the result in the default browser")
+    p.add_argument("--previous", help="the previous version of the flow spec, to highlight what changed")
     args = p.parse_args()
 
     spec = json.loads(Path(args.spec).expanduser().read_text(encoding="utf-8"))
@@ -66,6 +116,13 @@ def main() -> None:
 
     out = Path(args.output).expanduser()
     out.parent.mkdir(parents=True, exist_ok=True)
+    if args.previous:
+        prev_path = Path(args.previous).expanduser()
+        if prev_path.exists():
+            n = mark_changes(spec, json.loads(prev_path.read_text(encoding="utf-8")))
+            print(f"Compared with the previous version: {n} change(s) highlighted.")
+        else:
+            print(f"No previous version at {prev_path}; nothing to compare.")
     out.write_text(render(spec), encoding="utf-8")
     print(f"Flow preview written to {out.resolve()}")
     if args.open:

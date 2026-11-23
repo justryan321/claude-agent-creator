@@ -12,7 +12,7 @@ Agent Creator is a Claude plugin. Once it's installed, run one command and Claud
 
    Claude asks only about the gaps.
 2. **Agent Card:** review a one-screen summary of your agent's job, tone, abilities, and boundaries.
-3. **Flow Preview:** before anything is built, see a visual diagram with icons of how your agent will handle a request, what it does when something goes wrong, and what happens next. Approve it or ask for changes.
+3. **Flow Preview:** before anything is built, see a visual diagram with icons of how your agent will handle a request, what it does when something goes wrong, and what happens next. Approve it or ask for changes; each new version highlights what changed.
 4. **Test drive:** chat with your agent right away and give feedback until it behaves the way you want.
 5. **Easy setup:** in Claude Code, the builder can **install the agent for you**. On claude.ai, you get one copy-ready block and click-by-click steps. Every agent comes with an `agent-brief.md` save file, so you can come back and say *"update my agent"* anytime.
 6. **Tests:** the builder checks the finished agent with generated test cases and your own examples (input → expected answer), then helps fix anything that fails.
@@ -23,13 +23,17 @@ Agent Creator is a Claude plugin. Once it's installed, run one command and Claud
 
 After your agent is built, the builder writes **6–8 test cases** for it: everyday requests, tricky inputs, and things it should refuse or ask about first. It runs them against the real agent and shows ✅/❌ results with plain-language fixes. **You can add your own tests too:** give it something you'd ask and the answer you'd expect back. Tests are saved with your agent, so you can say *"run my tests"* after every change to make sure nothing broke.
 
+Results also come as a **visual test report**. Failures are listed first, each showing *what we expected* next to *what it actually did*, with the suggested fix and a phrase to copy into the chat to apply it:
+
+<p align="center"><img src="docs/test-report.png" alt="Visual test report showing 6 of 7 tests passed and a failed test with expected vs actual answers and a suggested fix" width="720"></p>
+
 ### Keeping track of your agents
 
 Every agent you build is added to **My Agents** automatically. Run `/agent-builder:my-agents`, or just say *"my agents"*, to see how many you have and what each one does, in a chat table and a visual dashboard (with a light/dark theme switch):
 
 <p align="center"><img src="docs/my-agents.png" alt="My Agents dashboard showing agent cards with what each does, where it lives, and test status" width="720"></p>
 
-From there you can update an agent, run its tests, tag it (#work, #personal), add notes, archive agents you don't use, or delete them (always with confirmation). In Claude Code the list is saved for you in `~/.claude/agent-builder/my-agents.json`. It covers **all your projects**: agents installed "only for this project" are labeled with their project, and flagged when you're working somewhere else. On claude.ai, the builder hands you an updated `my-agents.json` to keep in a "My Agents" Project.
+A **Needs attention** strip shows agents with failing tests, missing files, or no tests yet. Every suggested action has a **Copy** button, so you just paste it into the chat. Open **Details** on any agent for its full file paths, test history, a preview of its instructions, and links to its Flow Preview and test report. From there you can update an agent, run its tests, tag it (#work, #personal), add notes, archive agents you don't use, or delete them (always with confirmation). In Claude Code the list is saved for you in `~/.claude/agent-builder/my-agents.json`. It covers **all your projects**: agents installed "only for this project" are labeled with their project, and flagged when you're working somewhere else. On claude.ai, the builder hands you an updated `my-agents.json` to keep in a "My Agents" Project.
 
 ### Reusing an existing chat
 
@@ -106,10 +110,12 @@ plugins/agent-builder/
     │   └── glossary.md                  # plain-language explanations of technical terms
     ├── assets/
     │   ├── flow-template.html           # the Flow Preview diagram template
-    │   └── dashboard-template.html      # the My Agents dashboard template
+    │   ├── dashboard-template.html      # the My Agents dashboard template
+    │   └── test-report-template.html    # the visual test report template
     └── scripts/
         ├── extract_conversations.py     # reads Claude/ChatGPT exports and Claude Code sessions
-        ├── render_flow.py               # renders the Flow Preview to an HTML page
+        ├── render_flow.py               # renders the Flow Preview (and highlights changes)
+        ├── render_test_report.py        # renders the visual test report
         ├── agent_registry.py            # the My Agents registry and dashboard
         └── run_tests_standalone.py      # test runner copied into standalone apps
 ```

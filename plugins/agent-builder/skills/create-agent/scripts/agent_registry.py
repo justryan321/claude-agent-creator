@@ -44,6 +44,8 @@ TEMPLATE = Path(__file__).resolve().parent.parent / "assets" / "dashboard-templa
 START, END = "/*AGENTS_DATA_START*/", "/*AGENTS_DATA_END*/"
 SCHEMA = 1
 ID_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
+HISTORY_LIMIT = 10  # test runs kept per agent
+INSTRUCTIONS_PREVIEW = 700  # characters of the agent's instructions shown in the dashboard
 LOCAL_TYPES = {"subagent", "skill", "standalone-app"}
 WIN_ABS = re.compile(r"^([A-Za-z]:[\\/]|\\\\)")
 DEST_LABELS = {
@@ -329,6 +331,9 @@ def cmd_set_tests(data, args):
     if args.passed < 0 or args.total < 0 or args.passed > args.total:
         fail("--passed must be between 0 and --total")
     a["tests"] = {"passed": args.passed, "total": args.total, "last_run": now(), "method": args.method}
+    if args.report:
+        a["tests"]["report"] = args.report
+    a["test_history"] = ([dict(a["tests"])] + list(a.get("test_history") or []))[:HISTORY_LIMIT]
     a["updated"] = now()
     print(f"{a['name']}: tests {test_badge(a)}")
     return True
@@ -375,14 +380,50 @@ def cmd_remove(data, args):
     return True
 
 
+def instructions_preview(a: dict) -> str:
+    """First part of the '## Instructions' section of agent-brief.md, if readable."""
+    brief = a.get("brief_path")
+    if not brief or not is_abs(brief):
+        return ""
+    try:
+        text = resolve(brief).read_text(encoding="utf-8")
+    except OSError:
+        return ""
+    m = re.search(r"^## Instructions\s*\n(.*)", text, re.S | re.M)
+    body = (m.group(1) if m else "").strip()
+    return body if len(body) <= INSTRUCTIONS_PREVIEW else body[:INSTRUCTIONS_PREVIEW].rsplit(" ", 1)[0] + " …"
+
+
+def file_uri(p) -> str | None:
+    full = resolve(p)
+    return full.as_uri() if full.exists() else None
+
+
+def dashboard_extras(a: dict, here: Path) -> dict:
+    """Display-only fields for the dashboard; never saved to the registry."""
+    paths = []
+    for what, p in local_paths(a):
+        full = resolve(p) if is_abs(p) else None
+        paths.append({"what": what, "path": str(full) if full else p, "exists": bool(full and full.exists())})
+    agent_dir = Path(str(a["brief_path"])).parent if a.get("brief_path") and is_abs(a["brief_path"]) else None
+    flow = file_uri(agent_dir / "agent-flow.html") if agent_dir else None
+    report = None
+    rep_path = (a.get("tests") or {}).get("report") or (str(agent_dir / "tests" / "test-report.html") if agent_dir else None)
+    if rep_path and is_abs(rep_path):
+        report = file_uri(rep_path)
+    return {"scope": display_scope(a), "_usable_here": usable_in(a, here), "_unclear": unclear(a),
+            "_missing": missing(a), "_paths": paths, "_instructions": instructions_preview(a),
+            "_flow_url": flow, "_report_url": report,
+            "_project_name": project_name(a) if a.get("project") else None}
+
+
 def cmd_dashboard(data, args):
     html = TEMPLATE.read_text(encoding="utf-8")
     a, b = html.index(START) + len(START), html.index(END)
     here = resolve(args.here)
     agents = []
     for ag in data["agents"]:  # add display-only hints; never saved to the registry
-        agents.append({**ag, "scope": display_scope(ag), "_usable_here": usable_in(ag, here),
-                       "_unclear": unclear(ag), "_missing": missing(ag)})
+        agents.append({**ag, **dashboard_extras(ag, here)})
     payload = json.dumps({"generated": now(), "here": str(here), "here_name": here.name, "agents": agents},
                          ensure_ascii=False, indent=2)
     payload = payload.replace("</", "<\\/").replace("\u2028", "\\u2028").replace("\u2029", "\\u2029")
@@ -404,7 +445,7 @@ def main() -> None:
     s = sub.add_parser("check"); s.add_argument("id")
     s = sub.add_parser("show"); s.add_argument("id")
     s = sub.add_parser("upsert"); s.add_argument("entry")
-    s = sub.add_parser("set-tests"); s.add_argument("id"); s.add_argument("--passed", type=int, required=True); s.add_argument("--total", type=int, required=True); s.add_argument("--method", default="live", choices=["live", "simulated", "manual"])
+    s = sub.add_parser("set-tests"); s.add_argument("id"); s.add_argument("--passed", type=int, required=True); s.add_argument("--total", type=int, required=True); s.add_argument("--method", default="live", choices=["live", "simulated", "manual"]); s.add_argument("--report", help="full path of the HTML test report")
     s = sub.add_parser("tag"); s.add_argument("id"); s.add_argument("--add", nargs="*"); s.add_argument("--remove", nargs="*")
     s = sub.add_parser("note"); s.add_argument("id"); s.add_argument("text")
     s = sub.add_parser("archive"); s.add_argument("id")

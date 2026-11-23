@@ -120,7 +120,20 @@
   }
   .ico { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; flex: none; background: var(--k-soft); color: var(--k); }
   .step .num { font-size: 11.5px; font-weight: 700; color: var(--k); letter-spacing: .06em; text-transform: uppercase; }
-  .step h4 { margin: 1px 0 2px; font-size: 16px; }
+  .step h4 { margin: 1px 0 2px; font-size: 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+  .chg { font-size: 10.5px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; border-radius: 999px; padding: 1px 8px; }
+  .chg.new { background: var(--output-soft); color: var(--output); }
+  .chg.updated { background: var(--brand-soft); color: var(--brand); }
+  .step.changed { box-shadow: 0 0 0 3px var(--brand-soft), var(--shadow); }
+  .changes { display: flex; gap: 12px; align-items: flex-start; background: var(--surface); border: 1px solid var(--line);
+    border-left: 4px solid var(--brand); border-radius: 14px; padding: 12px 14px; margin-bottom: 20px; box-shadow: var(--shadow); }
+  .changes .ico { background: var(--brand-soft); color: var(--brand); width: 36px; height: 36px; border-radius: 10px; }
+  .changes b { display: block; }
+  .changes p { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
+  .changes ul { margin: 4px 0 0; padding-left: 18px; color: var(--muted); font-size: 14px; }
+  .changes s { color: var(--muted); }
+  .gcard li.isnew::after { content: "new"; margin-left: 6px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em;
+    color: var(--output); background: var(--output-soft); border-radius: 999px; padding: 0 6px; align-self: center; }
   .step p { margin: 0; color: var(--muted); font-size: 14px; }
   .k-input   { --k: var(--input);   --k-soft: var(--input-soft); }
   .k-think   { --k: var(--think);   --k-soft: var(--think-soft); }
@@ -369,6 +382,26 @@ function render(f) {
   hero.append(ht, themeToggle());
   app.append(hero);
 
+  // What changed since the previous version
+  const stepsArr = f.steps || [];
+  const nNew = stepsArr.filter(x => x.change === "new").length, nUpd = stepsArr.filter(x => x.change === "updated").length;
+  const removed = f.removed_steps || [];
+  const gNew = Object.values(f.glance_new || {}).reduce((m, x) => m + x.length, 0);
+  if (nNew || nUpd || removed.length || gNew) {
+    const box = el("div", "changes"); box.setAttribute("role", "status");
+    const ci = el("div", "ico"); ci.style.cssText = "display:grid;place-items:center;flex:none"; ci.append(icon("sparkles"));
+    const tx = el("div");
+    const parts = [];
+    if (nNew) parts.push(nNew + " new step" + (nNew > 1 ? "s" : ""));
+    if (nUpd) parts.push(nUpd + " changed step" + (nUpd > 1 ? "s" : ""));
+    if (removed.length) parts.push(removed.length + " removed");
+    if (gNew) parts.push(gNew + " new rule" + (gNew > 1 ? "s" : "") + " at a glance");
+    tx.append(el("b", null, "Updated" + (f.revision ? " (version " + f.revision + ")" : "") + ": your changes are highlighted"),
+              el("p", null, parts.join(" · ") + "."));
+    if (removed.length) { const ul = el("ul"); removed.forEach(r => { const li = el("li"); li.append(document.createTextNode("Removed: "), el("s", null, r)); ul.append(li); }); tx.append(ul); }
+    box.append(ci, tx); app.append(box);
+  }
+
   // At a glance
   const g = f.glance || {};
   const groups = [["can", "check", "Can do", g.can], ["wont", "alert", "Won't do", g.wont], ["ask", "help", "Asks you first", g.asks_first]];
@@ -378,7 +411,9 @@ function render(f) {
       if (!items || !items.length) continue;
       const c = el("div", "gcard " + cls);
       const h = el("h3"); h.append(icon(ic, "sm"), document.createTextNode(label));
-      const ul = el("ul"); items.forEach(t => ul.append(el("li", null, t)));
+      const key = cls === "ask" ? "asks_first" : cls;
+      const fresh = new Set(((f.glance_new || {})[key] || []).map(x => String(x).toLowerCase()));
+      const ul = el("ul"); items.forEach(t => ul.append(el("li", fresh.has(String(t).toLowerCase()) ? "isnew" : null, t)));
       c.append(h, ul); glance.append(c);
     }
     app.append(glance);
@@ -393,11 +428,13 @@ function render(f) {
   steps.forEach((s, i) => {
     if (i > 0) { const c = el("div", "connector"); c.append(el("div"), el("div")); flow.append(c); }
     const row = el("div", "row");
-    const card = el("div", "step " + kindClass(s.kind));
+    const card = el("div", "step " + kindClass(s.kind) + (s.change ? " changed" : ""));
     usedKinds.add(KINDS[s.kind] ? s.kind : "think");
     const ic = el("div", "ico"); ic.append(icon(s.icon));
     const body = el("div");
-    body.append(el("div", "num", "Step " + (i + 1) + " · " + (KINDS[s.kind] || KINDS.think)), el("h4", null, s.title || ""));
+    const h4 = el("h4", null, s.title || "");
+    if (s.change === "new" || s.change === "updated") h4.append(el("span", "chg " + s.change, s.change === "new" ? "New" : "Updated"));
+    body.append(el("div", "num", "Step " + (i + 1) + " · " + (KINDS[s.kind] || KINDS.think)), h4);
     if (s.detail) body.append(el("p", null, s.detail));
     card.append(ic, body);
     row.append(card);

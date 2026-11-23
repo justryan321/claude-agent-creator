@@ -50,7 +50,15 @@ Then show the **visual dashboard**:
   ```
   If the browser doesn't open (remote or headless machine), give the full path and say "open this file in your web browser".
 
-The dashboard has totals, search, filters (active/archived, where it lives, tags), a System / Light / Dark theme switch (remembered in that browser), and a card per agent with what it does, its abilities, test status, tags, and notes.
+The dashboard has:
+- totals
+- a **Needs attention** strip: failing tests, no tests, missing files, unclear locations, each with a phrase to fix it
+- search, a sort menu, and filters (active/archived, where it lives, tags)
+- a System / Light / Dark theme switch, remembered in that browser
+- a card per agent with one-click **Copy** buttons on the phrases to paste into the chat
+- a **Details** panel per agent: full file paths, test history, a preview of its instructions, and links to its Flow Preview and test report.
+
+Each card shows what the agent does, its abilities, test status, tags, and notes.
 
 ## 3. Offer actions
 
