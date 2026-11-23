@@ -15,8 +15,13 @@ Agent Creator is a Claude plugin. Once it's installed, run one command and Claud
 3. **Flow Preview:** before anything is built, see a visual diagram with icons of how your agent will handle a request, what it does when something goes wrong, and what happens next. Approve it or ask for changes.
 4. **Test drive:** chat with your agent right away and give feedback until it behaves the way you want.
 5. **Easy setup:** in Claude Code, the builder can **install the agent for you**. On claude.ai, you get one copy-ready block and click-by-click steps. Every agent comes with an `agent-brief.md` save file, so you can come back and say *"update my agent"* anytime.
+6. **Tests:** the builder checks the finished agent with generated test cases and your own examples (input → expected answer), then helps fix anything that fails.
 
 <p align="center"><img src="docs/flow-preview.png" alt="Example Flow Preview diagram for a Page Summarizer agent" width="720"></p>
+
+### Testing your agent
+
+After your agent is built, the builder writes **6–8 test cases** for it: everyday requests, tricky inputs, and things it should refuse or ask about first. It runs them against the real agent and shows ✅/❌ results with plain-language fixes. **You can add your own tests too:** give it something you'd ask and the answer you'd expect back. Tests are saved with your agent, so you can say *"run my tests"* after every change to make sure nothing broke.
 
 ### Reusing an existing chat
 
@@ -80,7 +85,7 @@ Customer Support Helper · Research Assistant · Writing Coach & Editor · Meeti
 plugins/agent-builder/
 ├── .claude-plugin/plugin.json           # plugin manifest
 └── skills/create-agent/
-    ├── SKILL.md                         # the builder's flow (interview → card → flow preview → test drive → files)
+    ├── SKILL.md                         # the builder's flow (interview → card → flow preview → test drive → files → tests)
     ├── references/
     │   ├── bring-your-own-context.md    # importing chats, files, old instructions, exports
     │   ├── templates.md                 # starter agent templates
@@ -88,12 +93,14 @@ plugins/agent-builder/
     │   ├── writing-instructions.md      # how the agent's instructions are written
     │   ├── output-formats.md            # file formats, install locations, agent-brief.md
     │   ├── flow-preview.md              # the visual flow diagram step
+    │   ├── test-cases.md                # generating, collecting, running, and grading tests
     │   └── glossary.md                  # plain-language explanations of technical terms
     ├── assets/
     │   └── flow-template.html           # the Flow Preview diagram template
     └── scripts/
         ├── extract_conversations.py     # reads Claude/ChatGPT exports and Claude Code sessions
-        └── render_flow.py               # renders the Flow Preview to an HTML page
+        ├── render_flow.py               # renders the Flow Preview to an HTML page
+        └── run_tests_standalone.py      # test runner copied into standalone apps
 ```
 
 ## Contributing

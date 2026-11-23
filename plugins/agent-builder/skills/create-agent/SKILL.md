@@ -1,6 +1,6 @@
 ---
 name: create-agent
-description: Guided, no-code builder for a custom Claude agent. Helps non-technical users turn an idea, an existing Claude chat, documents, or old instructions into a working agent. It interviews them, lets them test-drive the agent in chat, then sets it up for them (Claude.ai Project, Claude Code subagent, Claude skill, or standalone app). Use when the user wants to create, design, set up, import, or improve their own Claude agent, assistant, bot, GPT-style helper, or subagent, or runs /agent-builder:create-agent.
+description: Guided, no-code builder for a custom Claude agent. Helps non-technical users turn an idea, an existing Claude chat, documents, or old instructions into a working agent. It interviews them, lets them test-drive the agent in chat, then sets it up for them (Claude.ai Project, Claude Code subagent, Claude skill, or standalone app) and tests it with generated and user-provided test cases. Use when the user wants to create, design, set up, import, test, or improve their own Claude agent, assistant, bot, GPT-style helper, or subagent, or runs /agent-builder:create-agent.
 ---
 
 # Agent Builder
@@ -52,7 +52,7 @@ Topics, in order. Skip anything already known from context, a template, or earli
 
 1. **Purpose:** the job in one sentence.
 2. **Who uses it:** just them, their team, customers/the public, a learner.
-3. **Example requests:** 2–3 real ones, plus one tricky one. Propose them if the user can't think of any.
+3. **Example requests:** 2–3 real ones, plus one tricky one. Propose them if the user can't think of any. Also ask: "If you have one, tell me the answer you'd *want* back for one of these." Any input + expected-output pair becomes a test case later (Phase 6).
 4. **Personality and tone:** tone and reply length.
 5. **Knowledge:** what it needs to know and where that lives.
 6. **Abilities:** what it needs to *do* (web, read files, edit files, connect apps, run code).
@@ -120,16 +120,30 @@ Generate the files exactly as specified in `references/output-formats.md`, inclu
 - **Without file tools:** present each file as a separate code block with its filename as a heading, the most important one (what they paste) first.
 - Run the checklist at the end of `references/output-formats.md` before presenting.
 
+## Phase 6 · Test the finished agent
+
+Once the files are built (and installed, if chosen), check that the real agent works. Follow `references/test-cases.md`:
+
+1. **Generate 6–8 test cases** covering everyday requests, tricky inputs, boundaries (won't do / asks first / handoff), and format. Use real question → answer pairs from imported context and any expected answers the user gave earlier. Show them as a short numbered list.
+2. **Offer the user's own tests:** "Want to add your own test? Give me something you'd ask it and the answer you'd expect back. A full answer or just 'it should…' both work." Convert whatever they give into a case and show the expectations so they can correct them. They can add as many as they like.
+3. **Run them** against the real agent, each in a fresh context and in **test mode** (nothing changes for real): the installed subagent or skill in Claude Code, `tests/run_tests.py` for the standalone app, or a clearly labeled simulation plus a manual checklist for Claude.ai Projects.
+4. **Report** with ✅ / ❌ / ⚪, quoting what went wrong for each failure and a suggested fix in plain words. With the user's OK, apply the fixes, then **re-run all tests**, up to 3 rounds.
+5. Save `tests/test-cases.json` and `tests/test-report.md` with the agent's files.
+
+If the user wants to skip testing, let them, and mention they can say **"run my tests"** anytime.
+
 ### Wrap-up
 
-1. ✅ What was created or installed (short list).
+1. ✅ What was created or installed (short list), and the test result ("7 of 7 tests passed").
 2. ▶️ How to start using it in 2–4 steps, and one example to try first.
 3. 💡 One or two ideas to make it better later (for example "add your price list as knowledge").
-4. 🔁 "Anytime you want to change it, run the Agent Builder again and say **'update my agent'**, and share `agent-brief.md` or the agent file."
+4. 🔁 "Anytime you want to change it, run the Agent Builder again and say **'update my agent'**, and share `agent-brief.md` or the agent file. Say **'run my tests'** or **'add a test'** to check it again."
 
 ## Updating an existing agent
 
-If the user wants to change an agent they already have: load it as context (`agent-brief.md`, a subagent `.md` file, a `SKILL.md`, Project instructions, or an installed agent under `~/.claude/agents/` or `.claude/agents/` in Claude Code). Rebuild the Agent Card from it, ask what they want to change, then continue at Phase 3 → Flow Preview → test drive → build. Keep the same id unless they want a new one.
+If the user wants to change an agent they already have: load it as context (`agent-brief.md`, a subagent `.md` file, a `SKILL.md`, Project instructions, or an installed agent under `~/.claude/agents/` or `.claude/agents/` in Claude Code). Rebuild the Agent Card from it, ask what they want to change, then continue at Phase 3 → Flow Preview → test drive → build → tests. Keep the same id unless they want a new one. After any change, re-run the existing tests in `tests/test-cases.json` so nothing that used to work breaks.
+
+If the user just wants to **run or add tests** for an existing agent, load the agent and its `tests/test-cases.json` and go straight to Phase 6.
 
 ## Safety and honesty
 

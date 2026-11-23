@@ -61,7 +61,19 @@ To adjust something, type for example `feedback: put the key items before the su
 ### 5. Install
 When asked, choose **"Install it for me"** → **"Just for me, everywhere"**. The builder writes `~/.claude/agents/page-summarizer.md` and saves `agent-brief.md` and `HOW-TO-USE.md` to `./page-summarizer/`.
 
-### 6. Use it
+### 6. Test it
+The builder generates test cases and offers: *"Want to add your own test?"* Try giving it one:
+```
+Input: Summarize this: The quarterly all-hands is moved from Friday to Thursday, Nov 12 at 3pm in Room B. Please submit questions by Tuesday.
+I expect: the new date and time, the room, and the Tuesday deadline.
+```
+It runs every test against the installed agent and reports something like:
+```
+🧪 Test results: Page Summarizer   ✅ 7 passed · ❌ 0 failed
+```
+See [`tests/test-cases.json`](tests/test-cases.json) for this example's tests: 6 generated, plus 1 user-provided case with an expected answer. Later, say *"run my tests"* to re-check after changes.
+
+### 7. Use it
 In Claude Code, any project:
 ```
 Use the page-summarizer agent to review https://www.anthropic.com/news

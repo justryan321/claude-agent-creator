@@ -6,6 +6,10 @@ Generate the files for every destination the user chose. Put all of them in one 
 
 Keep `flow.json` and `agent-flow.html` from the Flow Preview step (`flow-preview.md`) in the `<agent-id>/` folder, updated to the final design. Mention it in HOW-TO-USE.md: "Open `agent-flow.html` in your browser for a picture of how your agent works." Without file tools, the artifact or the text diagram shown earlier is enough.
 
+## Always included: tests
+
+A `tests/` folder with `test-cases.json` and `test-report.md`, plus `test-checklist.md` for Claude.ai Projects (see `test-cases.md`). For the standalone app, copy `scripts/run_tests_standalone.py` unchanged to `tests/run_tests.py`. In HOW-TO-USE.md, add a short "Check it still works" section that says how to re-run the tests.
+
 ## Always included: `agent-brief.md`
 
 The agent's "save file". It lets the user (or the Agent Builder later) update the agent without starting over, and works as bring-your-own-context input.
@@ -165,6 +169,7 @@ For users who want the agent to run on its own, outside Claude Code or claude.ai
 ├── requirements.txt
 ├── .env.example
 ├── .gitignore
+├── tests/                     # see test-cases.md (run_tests.py is copied as-is)
 └── knowledge/                 # optional
 ```
 
@@ -218,6 +223,8 @@ TOOLS = [<e.g. "Read", "Glob", "Grep", "WebSearch", "WebFetch", "Write", "Edit">
 # Tools that run without asking (keep these to safe, read-only ones).
 AUTO_APPROVED = [<e.g. "Read", "Glob", "Grep", "WebSearch", "WebFetch">]
 
+MODEL = "claude-opus-5-5"
+
 # App connections (MCP servers). Leave empty if none.
 MCP_SERVERS = {
     # "<server-name>": {"type": "http", "url": "<server URL from the app's docs>"},
@@ -237,17 +244,31 @@ async def ask_before_acting(
     return PermissionResultDeny(message="The user said no. Ask what they'd like instead.")
 
 
-async def main() -> None:
-    options = ClaudeAgentOptions(
+async def test_mode_block(
+    tool: str, tool_input: dict, context: ToolPermissionContext
+) -> PermissionResultDeny:
+    """During tests, never change anything for real."""
+    return PermissionResultDeny(
+        message="Test mode: don't do this for real. Describe exactly what you would do instead."
+    )
+
+
+def build_options(test_mode: bool = False) -> ClaudeAgentOptions:
+    """The agent's settings. tests/run_tests.py reuses them with test_mode=True."""
+    return ClaudeAgentOptions(
         system_prompt=INSTRUCTIONS,
         tools=TOOLS,
         allowed_tools=AUTO_APPROVED,
         mcp_servers=MCP_SERVERS,
-        can_use_tool=ask_before_acting,
+        can_use_tool=test_mode_block if test_mode else ask_before_acting,
         cwd=str(HERE),          # the agent works inside this folder
         setting_sources=[],     # ignore any personal Claude Code settings
-        model="claude-opus-5-5",
+        model=MODEL,
     )
+
+
+async def main() -> None:
+    options = build_options()
 
     print(f"👋 {AGENT_NAME} is ready. Type your message, or 'quit' to exit.\n")
     async with ClaudeSDKClient(options=options) as client:
@@ -299,6 +320,8 @@ You'll need **Python 3.10 or newer** (python.org) and an **Anthropic API key** (
 5. Start it: `python agent.py`. Try: "<example request 1>". Type `quit` to stop.
 
 Whenever the agent wants to do something that changes things (like editing a file), it will ask you first.
+
+**Test it:** `python tests/run_tests.py` runs every test in `tests/test-cases.json` against your agent and writes `tests/test-report.md`. Add `--only T1,T3` to run some of them. Each run uses your API key and costs a little.
 ````
 
 ---
@@ -314,6 +337,9 @@ Whenever the agent wants to do something that changes things (like editing a fil
 **What it won't do:** <key boundaries>
 
 <One section per chosen destination, from above>
+
+## Check it still works
+<One line per destination: "Run the Agent Builder and say *run my tests*", or `python tests/run_tests.py` for the standalone app, or "Follow `tests/test-checklist.md`" for a Claude.ai Project.> Add your own tests by saying *add a test*.
 
 ## Try these first
 - "<example request 1>"
@@ -337,5 +363,6 @@ Your agent's behavior lives in its instructions (<file name>). Edit that text in
 - [ ] HOW-TO-USE.md has steps for every chosen destination and 2–3 example requests.
 - [ ] No API keys, passwords, or personal data are written into any file (re-check imported context).
 - [ ] `agent-brief.md` is included and matches the final instructions.
+- [ ] `tests/test-cases.json` exists (6–8 generated cases plus any from the user), and the latest results are in `tests/test-report.md`.
 - [ ] The Flow Preview was approved, and `agent-flow.html` (if files are possible) matches the final design.
 - [ ] If installed: the file is in the right folder and you told the user the exact first thing to type.

@@ -1,0 +1,119 @@
+{
+  "agent": "page-summarizer",
+  "cases": [
+    {
+      "id": "T1",
+      "name": "Summarizes an encyclopedia article",
+      "type": "everyday",
+      "source": "generated",
+      "input": "Summarize https://en.wikipedia.org/wiki/Photosynthesis",
+      "expected_output": "",
+      "must_include": [
+        "a title line with the page title",
+        "a 3–5 sentence summary in plain language",
+        "5–10 key items in bullets, most important first, with key terms in bold"
+      ],
+      "must_not_include": [
+        "facts that aren't on the page, unless labeled as background"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "T2",
+      "name": "Reviews a documentation page",
+      "type": "everyday",
+      "source": "generated",
+      "input": "Review this page and tell me the key items: https://docs.python.org/3/tutorial/venv.html",
+      "expected_output": "",
+      "must_include": [
+        "what a virtual environment is and why to use one",
+        "the command to create one",
+        "how to activate it"
+      ],
+      "must_not_include": [],
+      "notes": ""
+    },
+    {
+      "id": "T3",
+      "name": "Page that can't be read",
+      "type": "boundary",
+      "source": "generated",
+      "input": "Summarize https://example.invalid/members-only/report",
+      "expected_output": "",
+      "must_include": [
+        "says it couldn't read the page",
+        "asks the user to paste the text"
+      ],
+      "must_not_include": [
+        "a summary guessed from the URL or title"
+      ],
+      "notes": "The domain doesn't exist, so the page can never load."
+    },
+    {
+      "id": "T4",
+      "name": "Out-of-scope request",
+      "type": "boundary",
+      "source": "generated",
+      "input": "Write me a poem about autumn.",
+      "expected_output": "",
+      "must_include": [
+        "politely says it focuses on summarizing pages",
+        "suggests asking Claude directly"
+      ],
+      "must_not_include": [
+        "a poem"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "T5",
+      "name": "Summarizes pasted text and keeps numbers exact",
+      "type": "tricky",
+      "source": "generated",
+      "input": "Summarize this: Our office moves to 42 Harbor Street on March 3, 2027. Parking passes cost $35/month and must be requested by February 10. Badges stop working at the old office on March 1.",
+      "expected_output": "",
+      "must_include": [
+        "42 Harbor Street",
+        "March 3, 2027",
+        "$35/month",
+        "February 10",
+        "March 1"
+      ],
+      "must_not_include": [
+        "changed or rounded dates or amounts"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "T6",
+      "name": "Stays short",
+      "type": "format",
+      "source": "generated",
+      "input": "Summarize https://en.wikipedia.org/wiki/Moon",
+      "expected_output": "",
+      "must_include": [
+        "the whole review is under about 300 words",
+        "sections in this order: title line, Summary, Key items"
+      ],
+      "must_not_include": [
+        "long paragraphs of background"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "T7",
+      "name": "Your own example: meeting announcement",
+      "type": "everyday",
+      "source": "you",
+      "input": "Summarize this: The quarterly all-hands is moved from Friday to Thursday, Nov 12 at 3pm in Room B. Remote staff should use the usual video link. Please submit questions for the Q&A by Tuesday.",
+      "expected_output": "**📄 All-hands update**\n\n**Summary**\nThe quarterly all-hands moves to Thursday, Nov 12 at 3pm in Room B, with the usual video link for remote staff. Questions for the Q&A are due Tuesday.\n\n**Key items**\n- **New date:** Thursday, Nov 12 at 3pm (was Friday)\n- **Where:** Room B; remote staff use the usual video link\n- **Action:** submit Q&A questions by **Tuesday**",
+      "must_include": [
+        "the new day, date and time",
+        "Room B",
+        "the Tuesday deadline for questions"
+      ],
+      "must_not_include": [],
+      "notes": "Example of a user-provided test: input plus the answer they want. Graded on meaning, not exact wording."
+    }
+  ]
+}
