@@ -62,6 +62,10 @@ In Claude Code:
 
 You can also just say *"I want to build an agent that…"* and Claude will pick up the skill.
 
+## Example
+
+See [`examples/page-summarizer`](examples/page-summarizer/) for a 5-minute walkthrough that builds an agent to review a web page, summarize it, and list its key items. You can also install the finished agent directly.
+
 ## Templates included
 
 Customer Support Helper · Research Assistant · Writing Coach & Editor · Meeting Notes → Action Items · Spreadsheet & Data Explainer · Personal Tutor · Social Media Content Helper · Code Reviewer · Personal Organizer, or start from scratch.
@@ -92,3 +96,7 @@ To add a template, add a section to `references/templates.md`. To change the int
 ```
 claude plugin validate .
 ```
+
+## License
+
+[MIT](LICENSE)
