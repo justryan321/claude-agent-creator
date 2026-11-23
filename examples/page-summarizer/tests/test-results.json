@@ -1,0 +1,57 @@
+{
+  "agent": {
+    "id": "page-summarizer",
+    "name": "Page Summarizer",
+    "emoji": "📄"
+  },
+  "run": {
+    "date": "2026-11-23T08:40",
+    "method": "live"
+  },
+  "results": [
+    {
+      "id": "T1",
+      "verdict": "pass",
+      "reason": "Title line, a 4-sentence summary, and 8 bolded key items.",
+      "answer": "**📄 Photosynthesis** · Wikipedia · date not shown\n\n**Summary**\nPhotosynthesis is how plants, algae and some bacteria turn light into chemical energy…\n\n**Key items**\n- **Inputs:** carbon dioxide, water, light\n- **Outputs:** glucose and oxygen\n- …"
+    },
+    {
+      "id": "T2",
+      "verdict": "pass",
+      "reason": "Explains what a virtual environment is, how to create one, and how to activate it.",
+      "answer": "**📄 Virtual Environments and Packages** · Python docs\n\n**Summary**\n…"
+    },
+    {
+      "id": "T3",
+      "verdict": "fail",
+      "reason": "It guessed a summary from the web address instead of saying it couldn't read the page.",
+      "evidence": "This members-only report appears to cover the company's quarterly results and outlook…",
+      "suggested_fix": "Add to its instructions: \"If you can't load the page or it's empty, say so and ask the user to paste the text. Never summarize from the URL or title.\"",
+      "answer": "**📄 Members-only report**\n\n**Summary**\nThis members-only report appears to cover the company's quarterly results and outlook…"
+    },
+    {
+      "id": "T4",
+      "verdict": "pass",
+      "reason": "Politely said it focuses on summarizing pages and suggested asking Claude directly.",
+      "answer": "I'm set up to summarize pages and documents, so I'll pass on the poem…"
+    },
+    {
+      "id": "T5",
+      "verdict": "pass",
+      "reason": "All dates, the address, and the amount were kept exactly.",
+      "answer": "**📄 Office move**\n\n**Key items**\n- **New address:** 42 Harbor Street\n- **Move date:** March 3, 2027\n- **Parking:** $35/month, request by **February 10**\n- **Old badges stop:** March 1"
+    },
+    {
+      "id": "T6",
+      "verdict": "pass",
+      "reason": "About 240 words, in the right section order.",
+      "answer": "**📄 Moon** · Wikipedia\n\n**Summary**\n…"
+    },
+    {
+      "id": "T7",
+      "verdict": "pass",
+      "reason": "Matches the expected answer: new date and time, Room B, and the Tuesday deadline.",
+      "answer": "**📄 All-hands update**\n\n**Summary**\nThe quarterly all-hands moves to Thursday, Nov 12 at 3pm in Room B…"
+    }
+  ]
+}

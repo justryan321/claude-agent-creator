@@ -4,6 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>My Agents</title>
+<script>
+  /* Apply the saved theme choice before the page paints, to avoid a flash. */
+  try { const t = localStorage.getItem("agent-builder-theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
 <style>
   :root {
     --bg: #f7f5f2;
@@ -59,7 +63,21 @@
   svg.i { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
   svg.i.sm { width: 14px; height: 14px; }
 
-  header { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+  :root { color-scheme: light dark; }
+  :root[data-theme="light"] { color-scheme: light; }
+  :root[data-theme="dark"] { color-scheme: dark; }
+  header { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "logo text theme";
+    align-items: center; gap: 16px; margin-bottom: 20px; }
+  header .logo { grid-area: logo; }
+  header .htext { grid-area: text; }
+  header .theme { grid-area: theme; }
+  .theme { justify-self: end; display: inline-flex; gap: 2px; padding: 3px; background: var(--surface); border: 1px solid var(--line);
+    border-radius: 12px; box-shadow: var(--shadow); }
+  .theme button { border: 0; background: transparent; color: var(--muted); border-radius: 9px; padding: 6px 10px; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px; font: inherit; font-size: 13px; }
+  .theme button:hover { color: var(--text); }
+  .theme button[aria-pressed="true"] { background: var(--brand-soft); color: var(--brand); font-weight: 600; }
+  .theme button:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
   .logo { width: 56px; height: 56px; border-radius: 16px; display: grid; place-items: center; flex: none;
     background: linear-gradient(145deg, var(--brand-soft), var(--surface)); border: 1px solid var(--line); box-shadow: var(--shadow); color: var(--brand); }
   .logo svg.i { width: 28px; height: 28px; }
@@ -106,6 +124,12 @@
   .k-tool    { --k: var(--tool);    --k-soft: var(--tool-soft); }
   .k-output  { --k: var(--output);  --k-soft: var(--output-soft); }
   .abil { font-size: 12.5px; color: var(--muted); border: 1px solid var(--line); border-radius: 8px; padding: 2px 8px; }
+  .scope { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 600; border-radius: 8px; padding: 3px 8px;
+    border: 1px solid var(--line); color: var(--text); background: var(--surface); }
+  .notice { display: flex; align-items: flex-start; gap: 6px; font-size: 13px; border-radius: 10px; padding: 6px 10px;
+    background: var(--guard-soft); color: var(--guard); }
+  .notice.off { background: var(--bg-accent); color: var(--muted); }
+  .card.elsewhere { background: color-mix(in srgb, var(--surface) 70%, var(--bg)); }
   .tag { font-size: 12.5px; color: var(--brand); background: var(--brand-soft); border-radius: 8px; padding: 2px 8px; }
   .note { font-size: 13.5px; color: var(--muted); font-style: italic; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 
@@ -115,8 +139,6 @@
   .tests.pass { background: var(--output-soft); color: var(--output); }
   .tests.fail { background: var(--handoff-soft); color: var(--handoff); }
   .tests.none { background: var(--bg-accent); color: var(--muted); font-weight: 600; }
-  .ask { font-size: 12.5px; color: var(--muted); }
-  .ask code { white-space: nowrap; display: inline-block; margin: 2px 0; font: 12px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--bg-accent); border-radius: 6px; padding: 1px 6px; color: var(--text); }
 
   .empty { text-align: center; background: var(--surface); border: 1px dashed var(--line); border-radius: 16px; padding: 40px 20px; color: var(--muted); }
   .empty .big { font-size: 40px; }
@@ -124,7 +146,72 @@
   .empty code { font: 13px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--bg-accent); border-radius: 6px; padding: 2px 7px; color: var(--text); }
   .count { font-size: 13px; color: var(--muted); margin: 0 0 10px; }
 
+  .ask { display: flex; flex-direction: column; gap: 6px; font-size: 12.5px; color: var(--muted); }
+  .ask .lbl { font-size: 11.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
+  .phrases { display: flex; flex-wrap: wrap; gap: 6px; }
+  .phrases.col { flex-direction: column; align-items: flex-start; }
+  .phrase { display: inline-flex; align-items: center; gap: 2px; background: var(--bg-accent); border-radius: 8px; padding: 2px 2px 2px 8px; max-width: 100%; }
+  .phrase code { font: 12px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--text); overflow-wrap: anywhere; }
+  .copy { display: inline-flex; align-items: center; gap: 4px; border: 0; background: transparent; color: var(--muted); cursor: pointer;
+    font: inherit; font-size: 12px; border-radius: 6px; padding: 3px 6px; flex: none; }
+  .copy:hover { color: var(--text); background: var(--surface); }
+  .copy.done { color: var(--output); }
+  .copy:focus-visible, .details-btn:focus-visible, .who:focus-visible, .d-close:focus-visible, .btn:focus-visible, .sort select:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+  .details-btn { align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--surface);
+    color: var(--text); border-radius: 9px; padding: 5px 10px; font: inherit; font-size: 13px; cursor: pointer; }
+  .details-btn:hover { border-color: var(--muted); }
+
+  .sort { display: inline-flex; align-items: center; gap: 6px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    padding: 0 10px; color: var(--muted); }
+  .sort select { border: 0; background: transparent; color: var(--text); font: inherit; font-size: 14px; padding: 8px 2px; cursor: pointer; }
+
+  .attention { background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--guard); border-radius: 16px;
+    padding: 14px 16px; margin-bottom: 20px; box-shadow: var(--shadow); }
+  .attention h2 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 16px; color: var(--guard); }
+  .attention .badge-n { font-size: 12px; background: var(--guard-soft); color: var(--guard); border-radius: 999px; padding: 0 8px; }
+  .attention .hint { margin: 2px 0 10px; font-size: 13px; color: var(--muted); }
+  .attention ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+  .attention li { display: grid; grid-template-columns: minmax(150px, 1fr) minmax(0, 1.4fr) auto; gap: 10px; align-items: center;
+    padding: 8px 10px; border-radius: 10px; background: var(--bg-accent); }
+  .attention li.sev3 .what { color: var(--handoff); }
+  .attention .who { display: inline-flex; align-items: center; gap: 8px; border: 0; background: none; color: var(--text); font: inherit; font-weight: 600;
+    cursor: pointer; text-align: left; padding: 0; }
+  .attention .who:hover span:last-child { text-decoration: underline; }
+  .attention .what { display: inline-flex; align-items: center; gap: 6px; font-size: 13.5px; color: var(--muted); }
+
+  dialog.drawer { margin: 0 0 0 auto; height: 100%; max-height: 100%; width: min(520px, 100%); max-width: 100%; border: 0; padding: 0;
+    background: var(--bg); color: var(--text); box-shadow: -10px 0 40px rgba(0,0,0,.25); }
+  dialog.drawer::backdrop { background: rgba(20,18,16,.45); }
+  .drawer-inner { padding: 20px 20px 32px; display: flex; flex-direction: column; gap: 14px; }
+  .d-head { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: start; }
+  .d-head h2 { margin: 0; font-size: 20px; line-height: 1.25; }
+  .d-head p { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
+  .d-close { border: 1px solid var(--line); background: var(--surface); color: var(--text); border-radius: 10px; width: 36px; height: 36px;
+    display: grid; place-items: center; cursor: pointer; }
+  .d-sec { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+  .d-sec h3 { display: flex; align-items: center; gap: 7px; margin: 0; font-size: 13px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+  .path { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 6px; align-items: center; background: var(--bg-accent); border-radius: 10px; padding: 6px 4px 6px 10px; }
+  .path .what { grid-column: 1 / -1; font-size: 12px; color: var(--muted); }
+  .path code { font: 12.5px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; overflow-wrap: anywhere; }
+  .path.gone code { text-decoration: line-through; color: var(--muted); }
+  .muted { margin: 0; font-size: 13px; color: var(--muted); }
+  .hist { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+  .hist li { display: grid; grid-template-columns: 96px minmax(0, 1fr) 44px; gap: 8px; align-items: center; font-size: 12.5px; color: var(--muted); }
+  .hist .bar { height: 8px; border-radius: 99px; background: var(--handoff-soft); overflow: hidden; }
+  .hist .fill { display: block; height: 100%; background: var(--handoff); border-radius: 99px; }
+  .hist .fill.ok { background: var(--output); }
+  .hist .n { text-align: right; }
+  .links { display: flex; flex-wrap: wrap; gap: 8px; }
+  .btn { display: inline-flex; align-items: center; gap: 6px; text-decoration: none; color: var(--brand); background: var(--brand-soft);
+    border-radius: 9px; padding: 6px 10px; font-size: 13.5px; font-weight: 600; }
+  .instr { white-space: pre-wrap; font-size: 13px; line-height: 1.55; background: var(--bg-accent); border-radius: 10px; padding: 10px 12px;
+    max-height: 260px; overflow: auto; }
   @media (max-width: 760px) {
+    header { grid-template-columns: auto 1fr; grid-template-areas: "logo theme" "text text"; gap: 12px; }
+    .theme button span { display: none; }
+    .attention li { grid-template-columns: 1fr; gap: 6px; }
+    .toolbar .sort { flex: 1 1 100%; }
+    .theme button { padding: 6px 8px; }
     .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .grid { grid-template-columns: 1fr; }
   }
@@ -136,11 +223,11 @@
 <script>
 /* The Agent Builder replaces everything between the two markers with the registry (JSON). */
 const DATA = /*AGENTS_DATA_START*/{
-  "generated": "2026-11-23T09:00",
+  "generated": "2026-11-23T09:00", "here": "/Users/sam/acme-site", "here_name": "acme-site",
   "agents": [
     {"id": "page-summarizer", "name": "Page Summarizer", "emoji": "📄", "tagline": "Reviews a web page, summarizes it, and lists the important key items.",
      "abilities": ["Read web pages", "Read files"], "destinations": [{"type": "subagent", "location": "~/.claude/agents/page-summarizer.md"}],
-     "tests": {"passed": 7, "total": 7, "last_run": "2026-11-23T08:40", "method": "live"}, "tags": ["work"], "notes": "", "status": "active",
+     "tests": {"passed": 7, "total": 7, "last_run": "2026-11-23T08:40", "method": "live"}, "tags": ["work"], "notes": "", "status": "active", "scope": "personal", "_usable_here": true,
      "created": "2026-11-20T10:00", "updated": "2026-11-23T08:40", "version": 2}
   ]
 }/*AGENTS_DATA_END*/;
@@ -175,6 +262,38 @@ const ICONS = {
   chevron: '<path d="M9 6l6 6-6 6"/>'
 };
 
+Object.assign(ICONS, {
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+  moon: '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>',
+  monitor: '<rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/>'
+});
+
+/* Theme: "system" follows the device setting; "light"/"dark" override it. Saved per browser, shared with the Flow Preview. */
+function currentTheme() { return document.documentElement.dataset.theme || "system"; }
+function setTheme(t) {
+  if (t === "system") delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = t;
+  try { if (t === "system") localStorage.removeItem("agent-builder-theme"); else localStorage.setItem("agent-builder-theme", t); } catch (e) {}
+}
+function themeToggle() {
+  const g = el("div", "theme"); g.setAttribute("role", "group"); g.setAttribute("aria-label", "Color theme");
+  [["system", "monitor", "System"], ["light", "sun", "Light"], ["dark", "moon", "Dark"]].forEach(([v, ic, label]) => {
+    const b = el("button"); b.type = "button"; b.title = label + " theme"; b.setAttribute("aria-label", label + " theme");
+    b.setAttribute("aria-pressed", currentTheme() === v ? "true" : "false");
+    b.append(icon(ic, "sm"), el("span", null, label));
+    b.addEventListener("click", () => { setTheme(v); g.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b ? "true" : "false")); });
+    g.append(b);
+  });
+  return g;
+}
+
+Object.assign(ICONS, {
+  copy: '<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/>',
+  close: '<path d="M6 6l12 12M18 6L6 18"/>',
+  external: '<path d="M14 4h6v6M20 4l-9 9"/><path d="M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5"/>',
+  info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7h.01"/>',
+  sort: '<path d="M7 4v16M3 16l4 4 4-4M17 20V4M13 8l4-4 4 4"/>'
+});
+
 const DEST = {
   "claude-ai-project": {label: "Claude.ai Project", icon: "message", kind: "input"},
   "subagent":          {label: "Claude Code subagent", icon: "users", kind: "think"},
@@ -199,11 +318,64 @@ function testState(a) {
   return t.passed === t.total ? "pass" : "fail";
 }
 
-const agents = (DATA.agents || []).slice().sort((a, b) => {
-  const sa = a.status === "archived" ? 1 : 0, sb = b.status === "archived" ? 1 : 0;
-  return sa - sb || String(b.updated || "").localeCompare(String(a.updated || ""));
-});
-const state = {q: "", status: "active", dest: null, tag: null};
+/* ---------- copy to clipboard (works on file:// pages and in artifacts) ---------- */
+async function copyText(text) {
+  try { if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(text); return true; } } catch (e) {}
+  try {
+    const ta = el("textarea"); ta.value = text; ta.setAttribute("readonly", ""); ta.style.cssText = "position:fixed;top:-1000px;opacity:0";
+    document.body.append(ta); ta.select(); const ok = document.execCommand("copy"); ta.remove(); return ok;
+  } catch (e) { return false; }
+}
+function copyButton(text, label) {
+  const b = el("button", "copy"); b.type = "button";
+  const name = label || "Copy";
+  b.setAttribute("aria-label", name + ": " + text); b.title = "Copy “" + text + "”";
+  const show = (ic, t) => { b.textContent = ""; b.append(icon(ic, "sm"), el("span", null, t)); };
+  show("copy", name);
+  b.addEventListener("click", async (ev) => {
+    ev.stopPropagation();
+    const ok = await copyText(text);
+    show(ok ? "check" : "alert", ok ? "Copied" : "Select & copy");
+    b.classList.toggle("done", ok);
+    if (!ok) { const code = b.parentElement && b.parentElement.querySelector("code"); if (code) { const r = document.createRange(); r.selectNodeContents(code); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); } }
+    setTimeout(() => { show("copy", name); b.classList.remove("done"); }, 1600);
+  });
+  return b;
+}
+/* A phrase the user can paste into the chat, with its own copy button. */
+function phrase(text) {
+  const w = el("span", "phrase"); w.append(el("code", null, text), copyButton(text)); return w;
+}
+
+/* ---------- what needs attention ---------- */
+function issues(a) {
+  if (a.status === "archived") return [];
+  const out = [], t = a.tests || {};
+  if (a._unclear) out.push({sev: 3, icon: "alert", text: "Location is unclear (saved without a full path)", fix: "update " + a.id});
+  else if ((a._missing || []).length) out.push({sev: 3, icon: "alert", text: "File missing: " + a._missing[0], fix: "fix the missing file for " + a.id});
+  if (testState(a) === "fail") out.push({sev: 3, icon: "alert", text: "Failed " + (t.total - t.passed) + " of " + t.total + " tests" + (t.method === "simulated" ? " (simulated)" : ""), fix: "fix failing tests for " + a.id});
+  if (testState(a) === "none") out.push({sev: 1, icon: "help", text: "Not tested yet", fix: "add tests for " + a.id});
+  return out;
+}
+function severity(a) { return issues(a).reduce((m, i) => Math.max(m, i.sev), 0); }
+
+const SORTS = {
+  attention: {label: "Needs attention first", fn: (a, b) => severity(b) - severity(a) || byUpdated(a, b)},
+  updated:   {label: "Recently updated",      fn: (a, b) => byUpdated(a, b)},
+  name:      {label: "Name (A–Z)",            fn: (a, b) => String(a.name || a.id).localeCompare(String(b.name || b.id))}
+};
+function byUpdated(a, b) { return String(b.updated || "").localeCompare(String(a.updated || "")); }
+
+const agents = (DATA.agents || []).slice();
+const state = {q: "", status: "active", dest: null, tag: null, hereOnly: false, sort: "attention"};
+const HERE = DATA.here_name || null;
+function usableHere(a) { return a._usable_here !== false; }
+function projName(a) { return a._project_name || (a.project ? String(a.project).split(/[\\/]/).filter(Boolean).pop() : null); }
+function scopeText(a) {
+  const onlyCloud = (a.destinations || []).length > 0 && (a.destinations || []).every(d => d.type === "claude-ai-project");
+  return a.scope === "project" ? "Project: " + (projName(a) || "unknown") : a.scope === "unknown" ? "Where it works: unknown"
+    : onlyCloud ? "On claude.ai" : "Works in every project";
+}
 
 function render() {
   const app = document.getElementById("app");
@@ -211,9 +383,9 @@ function render() {
 
   const head = el("header");
   const logo = el("div", "logo"); logo.append(icon("users"));
-  const ht = el("div"); ht.append(el("h1", null, "My Agents"));
+  const ht = el("div", "htext"); ht.append(el("h1", null, "My Agents"));
   ht.append(el("p", null, "Everything you've built with the Agent Builder" + (DATA.generated ? " · updated " + fmtDate(DATA.generated) : "")));
-  head.append(logo, ht); app.append(head);
+  head.append(logo, ht, themeToggle()); app.append(head);
 
   if (!agents.length) {
     const e = el("div", "empty"); e.append(el("div", "big", "🗂️"), el("h2", null, "No agents yet"));
@@ -233,12 +405,31 @@ function render() {
     if (subs && subs.length) { const s = el("div", "sub"); subs.forEach(x => s.append(el("span", null, x))); t.append(s); } return t; };
   tiles.append(
     tile(agents.length, "agents in total", "", archived ? [archived + " archived"] : []),
-    tile(active.length, "active", "", []),
+    tile(active.length, "active", "", HERE ? (() => { const n = active.filter(a => !usableHere(a)).length;
+      return n ? [n + " only work in other projects"] : ["all work in " + HERE]; })() : []),
     tile(tested.length ? passing + "/" + tested.length : "–", "passing all tests", tested.length && passing < tested.length ? "warn" : (tested.length ? "ok" : ""),
          active.length - tested.length ? [(active.length - tested.length) + " not tested yet"] : []),
     tile(Object.keys(destCounts).length, "places they live", "", Object.entries(destCounts).map(([k, v]) => v + " " + (DEST[k] ? DEST[k].label : k)))
   );
   app.append(tiles);
+
+  // Needs attention
+  const needy = active.filter(a => issues(a).length).sort(SORTS.attention.fn);
+  if (needy.length) {
+    const box = el("section", "attention"); box.setAttribute("aria-label", "Agents that need attention");
+    const h = el("h2"); h.append(icon("alert", "sm"), document.createTextNode("Needs attention"), el("span", "badge-n", String(needy.length)));
+    box.append(h, el("p", "hint", "Copy a phrase and paste it into your chat with Claude to fix it."));
+    const list = el("ul");
+    needy.forEach(a => issues(a).forEach(i => {
+      const li = el("li", "sev" + i.sev);
+      const who = el("button", "who"); who.type = "button"; who.title = "Show details";
+      who.append(el("span", "em", a.emoji || "🤖"), el("span", null, a.name || a.id));
+      who.addEventListener("click", () => openDetails(a, who));
+      const what = el("span", "what"); what.append(icon(i.icon, "sm"), document.createTextNode(i.text));
+      li.append(who, what, phrase(i.fix)); list.append(li);
+    }));
+    box.append(list); app.append(box);
+  }
 
   // Toolbar
   const bar = el("div", "toolbar");
@@ -246,19 +437,26 @@ function render() {
   const input = el("input"); input.type = "search"; input.placeholder = "Search by name, job, tag, or note"; input.value = state.q;
   input.setAttribute("aria-label", "Search agents");
   input.addEventListener("input", () => { state.q = input.value; drawCards(); });
-  search.append(input); bar.append(search);
+  search.append(input);
+  const sortWrap = el("label", "sort"); sortWrap.append(icon("sort", "sm"));
+  const sel = el("select"); sel.setAttribute("aria-label", "Sort agents");
+  Object.entries(SORTS).forEach(([k, v]) => { const o = el("option", null, v.label); o.value = k; o.selected = state.sort === k; sel.append(o); });
+  sel.addEventListener("change", () => { state.sort = sel.value; drawCards(); });
+  sortWrap.append(sel);
+  bar.append(search, sortWrap);
   const chips = el("div", "chips");
   const chip = (label, pressed, onClick, ic) => { const c = el("button", "chip"); c.type = "button"; if (ic) c.append(icon(ic, "sm"));
     c.append(document.createTextNode(label)); c.setAttribute("aria-pressed", pressed ? "true" : "false"); c.addEventListener("click", onClick); return c; };
   [["active", "Active"], ["archived", "Archived"], ["all", "All"]].forEach(([v, l]) =>
     chips.append(chip(l, state.status === v, () => { state.status = v; render(); })));
+  if (HERE) chips.append(chip("Works in " + HERE, state.hereOnly, () => { state.hereOnly = !state.hereOnly; render(); }, "check"));
   Object.keys(destCounts).forEach(k => chips.append(chip(DEST[k] ? DEST[k].label : k, state.dest === k,
     () => { state.dest = state.dest === k ? null : k; render(); }, DEST[k] && DEST[k].icon)));
   const tags = [...new Set(agents.flatMap(a => a.tags || []))].sort();
   tags.forEach(t => chips.append(chip("#" + t, state.tag === t, () => { state.tag = state.tag === t ? null : t; render(); })));
   bar.append(chips); app.append(bar);
 
-  const count = el("p", "count"); app.append(count);
+  const count = el("p", "count"); count.setAttribute("aria-live", "polite"); app.append(count);
   const grid = el("div", "grid"); app.append(grid);
 
   function drawCards() {
@@ -268,7 +466,9 @@ function render() {
       (state.status === "all" || (state.status === "archived") === (a.status === "archived")) &&
       (!state.dest || (a.destinations || []).some(d => d.type === state.dest)) &&
       (!state.tag || (a.tags || []).includes(state.tag)) &&
-      (!q || [a.name, a.tagline, a.id, a.notes, a.for, ...(a.tags || []), ...(a.abilities || [])].join(" ").toLowerCase().includes(q)));
+      (!state.hereOnly || usableHere(a)) &&
+      (!q || [a.name, a.tagline, a.id, a.notes, a.for, a.project || "", ...(a.tags || []), ...(a.abilities || [])].join(" ").toLowerCase().includes(q)))
+      .sort((a, b) => (a.status === "archived") - (b.status === "archived") || SORTS[state.sort].fn(a, b));
     count.textContent = shown.length === 1 ? "Showing 1 agent" : "Showing " + shown.length + " agents";
     if (!shown.length) { const e = el("div", "empty"); e.append(el("div", "big", "🔍"), el("h2", null, "No agents match"), el("p", null, "Try a different search or filter."));
       grid.append(e); return; }
@@ -278,7 +478,7 @@ function render() {
 }
 
 function card(a) {
-  const c = el("article", "card" + (a.status === "archived" ? " archived" : ""));
+  const c = el("article", "card" + (a.status === "archived" ? " archived" : "") + (usableHere(a) ? "" : " elsewhere"));
   const top = el("div", "top");
   top.append(el("div", "emoji", a.emoji || "🤖"));
   const t = el("div"); const h = el("h3", null, a.name || a.id);
@@ -289,24 +489,129 @@ function card(a) {
   const dests = el("div", "row");
   (a.destinations || []).forEach(d => { const m = DEST[d.type] || {label: d.type, icon: "package", kind: "think"};
     const b = el("span", "dest k-" + m.kind); b.title = d.location || ""; b.append(icon(m.icon, "sm"), document.createTextNode(m.label)); dests.append(b); });
-  if (dests.childNodes.length) c.append(dests);
+  const sc = el("span", "scope"); sc.append(icon(a.scope === "project" ? "file" : "globe", "sm"), document.createTextNode(scopeText(a)));
+  if (a.project) sc.title = a.project;
+  dests.append(sc);
+  c.append(dests);
+  if (!usableHere(a)) { const w = el("div", "notice off"); w.append(icon("alert", "sm"),
+    document.createTextNode("Only works inside " + (projName(a) || "its project") + (HERE ? ", not in " + HERE : "") + ". Open that project to use it.")); c.append(w); }
+  if (a._unclear) { const w = el("div", "notice"); w.append(icon("alert", "sm"),
+    document.createTextNode("Location is unclear (saved without a full path). Say \"update " + a.id + "\" to fix it.")); c.append(w); }
+  else if ((a._missing || []).length) { const w = el("div", "notice"); w.append(icon("alert", "sm"),
+    document.createTextNode("File missing: " + a._missing[0] + (a._missing.length > 1 ? " (+" + (a._missing.length - 1) + " more)" : ""))); c.append(w); }
 
   if ((a.abilities || []).length) { const r = el("div", "row"); a.abilities.forEach(x => r.append(el("span", "abil", x))); c.append(r); }
   if ((a.tags || []).length) { const r = el("div", "row"); a.tags.forEach(x => r.append(el("span", "tag", "#" + x))); c.append(r); }
   if (a.notes) c.append(el("div", "note", a.notes));
 
   const foot = el("div", "foot");
+  foot.append(testBadge(a), el("span", null, "Updated " + fmtDate(a.updated) + (a.version > 1 ? " · v" + a.version : "")));
+  c.append(foot);
+
+  const ask = el("div", "ask"); ask.append(el("span", "lbl", "Ask the builder"));
+  const ph = el("div", "phrases"); ph.append(phrase("update " + a.id), phrase(testState(a) === "none" ? "add tests for " + a.id : "run tests for " + a.id));
+  ask.append(ph); c.append(ask);
+
+  const more = el("button", "details-btn"); more.type = "button"; more.append(icon("info", "sm"), document.createTextNode("Details"));
+  more.setAttribute("aria-label", "Details for " + (a.name || a.id));
+  more.addEventListener("click", () => openDetails(a, more));
+  c.append(more);
+  return c;
+}
+
+function testBadge(a) {
   const st = testState(a), ts = a.tests || {};
   const tb = el("span", "tests " + st);
   tb.append(icon(st === "pass" ? "check" : st === "fail" ? "alert" : "help", "sm"),
     document.createTextNode(st === "none" ? "Not tested" : ts.passed + "/" + ts.total + " tests" + (ts.method === "simulated" ? " (simulated)" : "")));
-  const when = el("span", null, "Updated " + fmtDate(a.updated) + (a.version > 1 ? " · v" + a.version : ""));
-  foot.append(tb, when); c.append(foot);
+  return tb;
+}
 
-  const ask = el("div", "ask"); ask.append(document.createTextNode("Ask the builder: "), el("code", null, "update " + a.id),
-    document.createTextNode(" · "), el("code", null, st === "none" ? "add tests for " + a.id : "run tests for " + a.id));
-  c.append(ask);
-  return c;
+/* ---------- details panel ---------- */
+let drawer = null, opener = null;
+function openDetails(a, from) {
+  opener = from || null;
+  if (!drawer) {
+    drawer = el("dialog", "drawer");
+    drawer.addEventListener("click", e => { if (e.target === drawer) drawer.close(); });
+    drawer.addEventListener("close", () => { if (opener) opener.focus(); });
+    document.body.append(drawer);
+  }
+  drawer.textContent = "";
+  drawer.setAttribute("aria-labelledby", "drawer-title");
+  const inner = el("div", "drawer-inner");
+
+  const top = el("div", "d-head");
+  top.append(el("div", "emoji", a.emoji || "🤖"));
+  const tt = el("div"); const h = el("h2", null, a.name || a.id); h.id = "drawer-title"; tt.append(h);
+  if (a.tagline) tt.append(el("p", null, a.tagline));
+  const close = el("button", "d-close"); close.type = "button"; close.setAttribute("aria-label", "Close details"); close.append(icon("close"));
+  close.addEventListener("click", () => drawer.close());
+  top.append(tt, close); inner.append(top);
+
+  const section = (title, ic) => { const s = el("section", "d-sec"); const t = el("h3"); t.append(icon(ic, "sm"), document.createTextNode(title)); s.append(t); inner.append(s); return s; };
+
+  // Where it works
+  const w = section("Where it works", "globe");
+  const row = el("div", "row");
+  (a.destinations || []).forEach(d => { const m = DEST[d.type] || {label: d.type, icon: "package", kind: "think"};
+    const b = el("span", "dest k-" + m.kind); b.append(icon(m.icon, "sm"), document.createTextNode(m.label)); row.append(b); });
+  const sc = el("span", "scope"); sc.append(icon(a.scope === "project" ? "file" : "globe", "sm"), document.createTextNode(scopeText(a))); row.append(sc);
+  w.append(row);
+  if (a.project) { const p = el("div", "path"); p.append(el("span", "what", "Project folder"), el("code", null, a.project), copyButton(a.project)); w.append(p); }
+  if (!usableHere(a)) w.append(el("p", "muted", "Only works inside " + (projName(a) || "its project") + ". Open that project in Claude Code to use it."));
+  (a.destinations || []).filter(d => d.type === "claude-ai-project").forEach(d => w.append(el("p", "muted", "☁️ " + (d.location || "On claude.ai"))));
+
+  // Files
+  const files = a._paths || [];
+  if (files.length) {
+    const f = section("Files on this computer", "file");
+    files.forEach(x => { const p = el("div", "path" + (x.exists ? "" : " gone"));
+      p.append(el("span", "what", x.what + (x.exists ? "" : " (missing)")), el("code", null, x.path), copyButton(x.path)); f.append(p); });
+  }
+
+  // Tests
+  const tsec = section("Tests", "check");
+  const tl = el("div", "row"); tl.append(testBadge(a));
+  if ((a.tests || {}).last_run) tl.append(el("span", "muted", "last run " + fmtDate(a.tests.last_run) + (a.tests.method ? " · " + a.tests.method : "")));
+  tsec.append(tl);
+  const hist = (a.test_history || []).slice(0, 8);
+  if (hist.length > 1) {
+    const ul = el("ul", "hist"); ul.setAttribute("aria-label", "Recent test runs");
+    hist.forEach(r => { const li = el("li"); const pct = r.total ? Math.round(100 * r.passed / r.total) : 0;
+      const bar = el("span", "bar"); const fill = el("span", "fill" + (r.passed === r.total ? " ok" : "")); fill.style.width = pct + "%"; bar.append(fill);
+      li.append(el("span", "d", fmtDate(r.last_run)), bar, el("span", "n", r.passed + "/" + r.total)); ul.append(li); });
+    tsec.append(ul);
+  }
+  const links = el("div", "links");
+  if (a._report_url) { const l = el("a", "btn"); l.href = a._report_url; l.target = "_blank"; l.rel = "noopener"; l.append(icon("list", "sm"), document.createTextNode("Open test report")); links.append(l); }
+  if (a._flow_url) { const l = el("a", "btn"); l.href = a._flow_url; l.target = "_blank"; l.rel = "noopener"; l.append(icon("sparkles", "sm"), document.createTextNode("See how it works")); links.append(l); }
+  if (links.childNodes.length) tsec.append(links);
+
+  // Instructions
+  if (a._instructions) {
+    const s = section("Its instructions (preview)", "book");
+    s.append(el("div", "instr", a._instructions), el("p", "muted", "From agent-brief.md. Say “update " + a.id + "” to change them."));
+  }
+
+  // Tags & notes
+  if ((a.tags || []).length || a.notes) {
+    const s = section("Tags & notes", "edit");
+    if ((a.tags || []).length) { const r = el("div", "row"); a.tags.forEach(x => r.append(el("span", "tag", "#" + x))); s.append(r); }
+    if (a.notes) s.append(el("div", "note", a.notes));
+  }
+
+  // Ask the builder
+  const ask = section("Ask the builder", "message");
+  ask.append(el("p", "muted", "Copy a phrase and paste it into your chat with Claude."));
+  const ph = el("div", "phrases col");
+  ["update " + a.id, testState(a) === "none" ? "add tests for " + a.id : "run tests for " + a.id, "add a test for " + a.id,
+   "tag " + a.id + " as work", a.status === "archived" ? "restore " + a.id : "archive " + a.id].forEach(x => ph.append(phrase(x)));
+  ask.append(ph);
+
+  drawer.append(inner);
+  drawer.showModal();
+  close.focus();
 }
 
 render();

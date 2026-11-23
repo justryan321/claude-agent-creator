@@ -120,7 +120,26 @@ Show a compact report in chat:
 ...
 ```
 
-Save the same report to `tests/test-report.md` with the date, method (live / simulated / manual), and the full answers. Then update the agent's entry in **My Agents** so the dashboard shows its health: `python3 <skill-dir>/scripts/agent_registry.py set-tests <agent-id> --passed N --total N --method live|simulated|manual` (on claude.ai, update `tests` in `my-agents.json`).
+Save the same report to `tests/test-report.md` with the date, method (live / simulated / manual), and the full answers.
+
+**Visual report.** Also save the results as `tests/test-results.json` (the standalone `run_tests.py` writes this for you):
+
+```json
+{
+  "agent": {"id": "<agent-id>", "name": "<Display Name>", "emoji": "<emoji>"},
+  "run": {"date": "YYYY-MM-DDTHH:MM", "method": "live | simulated | manual"},
+  "results": [
+    {"id": "T3", "verdict": "pass | review | fail | couldnt_run", "reason": "<one plain sentence>",
+     "evidence": "<short quote from the answer>", "suggested_fix": "<one sentence, failures only>", "answer": "<the agent's full answer>"}
+  ]
+}
+```
+
+Each result's input and expectations are filled in from `tests/test-cases.json` by `id`. Then show the visual report: one card per test, failures first, with **what we expected** beside **what it actually did**, the suggested fix, and copyable phrases.
+- **Claude Code:** `python3 <skill-dir>/scripts/render_test_report.py tests/test-results.json tests/test-report.html --open`
+- **Artifacts (claude.ai):** read `assets/test-report-template.html`, merge each result with its test case, replace everything between `/*REPORT_DATA_START*/` and `/*REPORT_DATA_END*/` with the JSON (escape `</` as `<\/`), and show it as an HTML artifact.
+
+When the user later says "show my test report", re-render it from `tests/test-results.json`. Then update the agent's entry in **My Agents** so the dashboard shows its health: `python3 <skill-dir>/scripts/agent_registry.py set-tests <agent-id> --passed N --total N --method live|simulated|manual --report <full path of tests/test-report.html>` (on claude.ai, update `tests` in `my-agents.json`). This also adds the run to the agent's test history, which the dashboard shows. Count a 👀 **review** result as passed only after the user confirms the answer is right.
 
 Then, for each failure:
 1. Suggest a specific fix: an instruction change, a tool change, or an adjustment to the test if the expectation itself was unreasonable. Explain it in one plain sentence.
@@ -136,7 +155,9 @@ Stop after the tests pass or after 3 fix rounds. If something still fails, expla
 ```
 <agent-id>/tests/
 ├── test-cases.json      # the tests (edit or add to them anytime)
-├── test-report.md       # latest results
+├── test-report.md       # latest results (text)
+├── test-results.json    # latest results (structured, for the visual report)
+├── test-report.html     # visual report
 ├── test-checklist.md    # manual checklist (Claude.ai Projects, or on request)
 ├── run_tests.py         # standalone app only (copied from the skill's scripts/run_tests_standalone.py)
 └── fixtures/            # sample files used by tests, if any

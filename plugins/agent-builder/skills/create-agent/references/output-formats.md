@@ -18,8 +18,10 @@ Every agent you build or update is recorded in the user's **My Agents** registry
   "tagline": "<Agent Card: Job>",
   "for": "<Agent Card: For>",
   "abilities": ["<Agent Card: Can, as short plain items>"],
+  "scope": "personal | project",
+  "project": "<only for scope 'project': full path of the project folder, e.g. /Users/sam/acme-site>",
   "destinations": [
-    {"type": "subagent | skill | claude-ai-project | standalone-app", "location": "<installed path, folder, or 'claude.ai Project: <name>'>"}
+    {"type": "subagent | skill | claude-ai-project | standalone-app", "location": "<FULL path of the installed file or folder, or 'claude.ai Project: <name>'>"}
   ],
   "brief_path": "<absolute path to agent-brief.md, or 'kept by user' on claude.ai>",
   "tags": [],
@@ -27,7 +29,11 @@ Every agent you build or update is recorded in the user's **My Agents** registry
 }
 ```
 
-- Use one `destinations` item per place it lives, with the real install path when you installed it.
+- **Always use full paths** (starting with `/`, `~`, or a drive letter like `C:\`) for `location`, `project`, and `brief_path`. Never use paths like `.claude/agents/x.md`. The registry is shared by all of the user's projects, so a short path would point somewhere different depending on where it's read from. Turn a short path into a full one by joining it to the current project folder (`pwd`) before registering. The script rejects short paths.
+- **Scope:**
+  - `"personal"` = installed "just for me, in all projects" (under `~/.claude/`), a standalone app, or a claude.ai Project.
+  - `"project"` = installed "only in this project" (under `<project>/.claude/`). Set `project` to that project's folder (the top of the repository, i.e. `git rev-parse --show-toplevel`, or the current folder if it isn't a git repository). The install path must be inside it.
+- Use one `destinations` item per place it lives.
 - Leave `tests` out; Phase 6 records them with `set-tests`. On an update, tags, notes, and the creation date are kept automatically.
 - Offer one or two tags based on the job ("work", "business", "personal"), only if the user wants them.
 
@@ -100,6 +106,8 @@ When the user picks install, write the agent directly to its live location inste
 | Subagent | `~/.claude/agents/<agent-id>.md` | `.claude/agents/<agent-id>.md` |
 | Skill | `~/.claude/skills/<agent-id>/SKILL.md` | `.claude/skills/<agent-id>/SKILL.md` |
 | Knowledge files | `~/.claude/agents/knowledge/<agent-id>/` | `.claude/agents/knowledge/<agent-id>/` |
+
+"Only this project" paths are relative to the project folder. When registering the agent, record them as full paths, plus `scope: "project"` and the project folder (see "Register the agent"). Tell the user plainly: "This agent only works when you're in **<project name>**."
 
 Still save `agent-brief.md` and `HOW-TO-USE.md` to `./<agent-id>/` (or next to the installed file if they prefer). Then tell them exactly how to try it right now, for example: "Type: *Use the <agent-id> agent to <example 1>*". New subagents and skills are picked up within seconds, so no restart is needed. If it doesn't show up, suggest restarting Claude Code.
 

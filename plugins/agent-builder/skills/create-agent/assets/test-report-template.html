@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Test Report</title>
+<script>
+  /* Apply the saved theme choice before the page paints, to avoid a flash. */
+  try { const t = localStorage.getItem("agent-builder-theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+<style>
+  :root {
+    --bg: #f7f5f2;
+    --bg-accent: #efe9e1;
+    --surface: #ffffff;
+    --text: #1f1d1a;
+    --muted: #6b665e;
+    --line: #ddd6cc;
+    --shadow: 0 1px 2px rgba(31,29,26,.06), 0 6px 20px rgba(31,29,26,.06);
+    --brand: #c96442;
+    --brand-soft: #f6e3da;
+    --input: #2f6fd6;   --input-soft: #e3edfc;
+    --think: #7a4fd0;   --think-soft: #eee6fb;
+    --tool: #0f8f86;    --tool-soft: #dcf3f1;
+    --guard: #b7791f;   --guard-soft: #fbefd9;
+    --output: #2f8a46;  --output-soft: #e0f2e5;
+    --handoff: #c2415d; --handoff-soft: #fbe3e8;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #1b1a18; --bg-accent: #24221f; --surface: #2a2825; --text: #f1ede7; --muted: #a8a196;
+      --line: #3d3a35; --shadow: 0 1px 2px rgba(0,0,0,.3), 0 6px 20px rgba(0,0,0,.25);
+      --brand: #e08a69; --brand-soft: #3d2a22;
+      --input: #7aa7f0;   --input-soft: #1f2c42;
+      --think: #b196ee;   --think-soft: #2d2540;
+      --tool: #4cc4ba;    --tool-soft: #17332f;
+      --guard: #e0ad5c;   --guard-soft: #3a2f1c;
+      --output: #6cc283;  --output-soft: #1c3322;
+      --handoff: #ee7d95; --handoff-soft: #3e2028;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #1b1a18; --bg-accent: #24221f; --surface: #2a2825; --text: #f1ede7; --muted: #a8a196;
+    --line: #3d3a35; --shadow: 0 1px 2px rgba(0,0,0,.3), 0 6px 20px rgba(0,0,0,.25);
+    --brand: #e08a69; --brand-soft: #3d2a22;
+    --input: #7aa7f0;   --input-soft: #1f2c42;
+    --think: #b196ee;   --think-soft: #2d2540;
+    --tool: #4cc4ba;    --tool-soft: #17332f;
+    --guard: #e0ad5c;   --guard-soft: #3a2f1c;
+    --output: #6cc283;  --output-soft: #1c3322;
+    --handoff: #ee7d95; --handoff-soft: #3e2028;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: radial-gradient(1200px 500px at 10% -10%, var(--bg-accent), transparent 60%), var(--bg);
+    color: var(--text);
+    font: 15px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 32px 16px 48px; }
+  svg.i { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+  svg.i.sm { width: 14px; height: 14px; }
+
+  :root { color-scheme: light dark; }
+  :root[data-theme="light"] { color-scheme: light; }
+  :root[data-theme="dark"] { color-scheme: dark; }
+  header { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "logo text theme";
+    align-items: center; gap: 16px; margin-bottom: 20px; }
+  header .logo { grid-area: logo; }
+  header .htext { grid-area: text; }
+  header .theme { grid-area: theme; }
+  .theme { justify-self: end; display: inline-flex; gap: 2px; padding: 3px; background: var(--surface); border: 1px solid var(--line);
+    border-radius: 12px; box-shadow: var(--shadow); }
+  .theme button { border: 0; background: transparent; color: var(--muted); border-radius: 9px; padding: 6px 10px; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px; font: inherit; font-size: 13px; }
+  .theme button:hover { color: var(--text); }
+  .theme button[aria-pressed="true"] { background: var(--brand-soft); color: var(--brand); font-weight: 600; }
+  .theme button:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
+  .logo { width: 56px; height: 56px; border-radius: 16px; display: grid; place-items: center; flex: none;
+    background: linear-gradient(145deg, var(--brand-soft), var(--surface)); border: 1px solid var(--line); box-shadow: var(--shadow); color: var(--brand); }
+  .logo svg.i { width: 28px; height: 28px; }
+  h1 { margin: 0; font-size: clamp(22px, 4vw, 30px); letter-spacing: -.01em; line-height: 1.15; }
+  header p { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
+
+  .phrases { display: flex; flex-wrap: wrap; gap: 6px; }
+  .phrases.col { flex-direction: column; align-items: flex-start; }
+  .phrase { display: inline-flex; align-items: center; gap: 2px; background: var(--bg-accent); border-radius: 8px; padding: 2px 2px 2px 8px; max-width: 100%; }
+  .phrase code { font: 12px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--text); overflow-wrap: anywhere; }
+  .copy { display: inline-flex; align-items: center; gap: 4px; border: 0; background: transparent; color: var(--muted); cursor: pointer;
+    font: inherit; font-size: 12px; border-radius: 6px; padding: 3px 6px; flex: none; }
+  .copy:hover { color: var(--text); background: var(--surface); }
+  .copy.done { color: var(--output); }
+  .copy:focus-visible, .details-btn:focus-visible, .who:focus-visible, .d-close:focus-visible, .btn:focus-visible, .sort select:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+  .score { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 18px; align-items: center; background: var(--surface);
+    border: 1px solid var(--line); border-radius: 16px; padding: 18px 20px; box-shadow: var(--shadow); margin-bottom: 18px; }
+  .big { font-size: 40px; font-weight: 800; letter-spacing: -.02em; line-height: 1; }
+  .big small { font-size: 16px; font-weight: 600; color: var(--muted); letter-spacing: 0; }
+  .verdict { font-size: 15px; font-weight: 600; margin-bottom: 8px; }
+  .verdict.ok { color: var(--output); } .verdict.bad { color: var(--handoff); }
+  .seg { display: flex; height: 12px; border-radius: 99px; overflow: hidden; background: var(--bg-accent); }
+  .seg span { display: block; height: 100%; }
+  .seg .p { background: var(--output); } .seg .f { background: var(--handoff); } .seg .c { background: var(--muted); opacity: .5; } .seg .r { background: var(--guard); }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 8px; font-size: 13px; color: var(--muted); }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+  .meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+  .meta span { font-size: 12.5px; color: var(--muted); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 2px 8px; }
+  .meta .sim { color: var(--guard); background: var(--guard-soft); border-color: transparent; font-weight: 600; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+  .chip { border: 1px solid var(--line); background: var(--surface); color: var(--text); border-radius: 999px; padding: 4px 11px;
+    font: inherit; font-size: 13px; cursor: pointer; }
+  .chip[aria-pressed="true"] { background: var(--brand); border-color: var(--brand); color: #fff; }
+  .chip:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+  .list { display: grid; gap: 12px; }
+  .t { background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--k); border-radius: 16px; box-shadow: var(--shadow); }
+  .t.pass { --k: var(--output); --k-soft: var(--output-soft); }
+  .t.fail { --k: var(--handoff); --k-soft: var(--handoff-soft); }
+  .t.review { --k: var(--guard); --k-soft: var(--guard-soft); }
+  .input ol { margin: 0; padding-left: 20px; } .input li + li { margin-top: 4px; }
+  .t.couldnt_run, .t.not_graded { --k: var(--muted); --k-soft: var(--bg-accent); }
+  .t > summary, .t > .th { list-style: none; display: flex; align-items: center; gap: 12px; padding: 14px 16px; cursor: pointer; }
+  .t > .th { cursor: default; }
+  .t > summary::-webkit-details-marker { display: none; }
+  .t > summary:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; border-radius: 14px; }
+  .st { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; flex: none; background: var(--k-soft); color: var(--k); }
+  .tt { min-width: 0; flex: 1; }
+  .tt h3 { margin: 0; font-size: 15.5px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+  .tt .id { font: 600 12px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--muted); }
+  .pill { font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; border-radius: 999px; padding: 1px 8px; background: var(--bg-accent); color: var(--muted); }
+  .pill.you { background: var(--brand-soft); color: var(--brand); }
+  .tt p { margin: 2px 0 0; font-size: 13.5px; color: var(--muted); }
+  .chev { color: var(--muted); transition: transform .15s; }
+  details[open] > summary .chev { transform: rotate(90deg); }
+  .tb { padding: 0 16px 16px; display: flex; flex-direction: column; gap: 12px; }
+  .lbl { font-size: 11.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+  .input { background: var(--bg-accent); border-radius: 10px; padding: 10px 12px; font-size: 14px; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .cmp { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .box { border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; font-size: 14px; min-width: 0; }
+  .box.exp { background: var(--output-soft); border-color: transparent; }
+  .box.got { background: var(--handoff-soft); border-color: transparent; }
+  .t.pass .box.got { background: var(--bg-accent); }
+  .box ul { margin: 4px 0 0; padding-left: 18px; }
+  .box li { margin: 2px 0; }
+  .box .sub { font-size: 12.5px; font-weight: 700; margin-top: 6px; }
+  .quote { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .why { display: flex; gap: 8px; align-items: flex-start; font-size: 14px; }
+  .fix { display: flex; flex-direction: column; gap: 6px; background: var(--brand-soft); border-radius: 12px; padding: 10px 12px; }
+  .fix .txt { display: flex; gap: 8px; align-items: flex-start; font-size: 14px; color: var(--text); }
+  .fix .txt svg { color: var(--brand); margin-top: 2px; }
+  .full { font-size: 13.5px; }
+  .full summary { cursor: pointer; color: var(--muted); }
+  .full .quote { margin-top: 6px; background: var(--bg-accent); border-radius: 10px; padding: 10px 12px; max-height: 320px; overflow: auto; }
+  .cta { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; margin-top: 18px; background: var(--surface); border: 1px solid var(--line);
+    border-radius: 16px; padding: 14px 16px; box-shadow: var(--shadow); font-size: 14px; }
+  .empty { text-align: center; color: var(--muted); padding: 30px; border: 1px dashed var(--line); border-radius: 16px; }
+
+  @media (max-width: 760px) {
+    header { grid-template-columns: auto 1fr; grid-template-areas: "logo theme" "text text"; gap: 12px; }
+    .theme button span { display: none; }
+    .theme button { padding: 6px 8px; }
+    .cmp { grid-template-columns: 1fr; }
+    .score { grid-template-columns: 1fr; gap: 10px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<script>
+/* The Agent Builder replaces everything between the two markers with the test results (JSON). */
+const DATA = /*REPORT_DATA_START*/{
+  "agent": {"id": "page-summarizer", "name": "Page Summarizer", "emoji": "📄"},
+  "run": {"date": "2026-11-23T08:40", "method": "live"},
+  "results": [
+    {"id": "T3", "name": "Page that can't be read", "type": "boundary", "source": "generated",
+     "input": "Summarize https://example.invalid/members-only/report",
+     "must_include": ["says it couldn't read the page", "asks the user to paste the text"], "must_not_include": ["a summary guessed from the URL or title"],
+     "verdict": "fail", "reason": "It guessed a summary from the URL instead of saying it couldn't read the page.",
+     "evidence": "This members-only report appears to cover quarterly results…",
+     "suggested_fix": "Add to its instructions: \"If you can't read the page content, never summarize from the URL or title; ask for the text.\"",
+     "answer": "**📄 Members-only report**\n\nThis members-only report appears to cover quarterly results…"},
+    {"id": "T1", "name": "Summarizes an encyclopedia article", "type": "everyday", "source": "generated",
+     "input": "Summarize https://en.wikipedia.org/wiki/Photosynthesis", "must_include": ["a title line", "a 3–5 sentence summary", "5–10 bolded key items"],
+     "verdict": "pass", "reason": "All expectations met.", "answer": "**📄 Photosynthesis** · Wikipedia\n\n**Summary**\n…"}
+  ]
+}/*REPORT_DATA_END*/;
+
+const ICONS = {
+  message: '<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/>',
+  user: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>',
+  users: '<circle cx="9" cy="8" r="3.5"/><path d="M2 20c0-3.5 3-5.5 7-5.5s7 2 7 5.5"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7"/><path d="M18 14.8c2.4.6 4 2.4 4 5.2"/>',
+  book: '<path d="M4 4.5A1.5 1.5 0 0 1 5.5 3H20v15H5.5A1.5 1.5 0 0 0 4 19.5z"/><path d="M4 19.5A1.5 1.5 0 0 0 5.5 21H20"/>',
+  globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c3 3.5 3 14.5 0 18c-3-3.5-3-14.5 0-18z"/>',
+  file: '<path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/>',
+  search: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>',
+  plug: '<path d="M9 2v6M15 2v6"/><path d="M6 8h12v3a6 6 0 0 1-12 0z"/><path d="M12 17v5"/>',
+  terminal: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9l3 3-3 3M13 15h4"/>',
+  sparkles: '<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/>',
+  shield: '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>',
+  alert: '<path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18h.01"/>',
+  help: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.7M12 17h.01"/>',
+  list: '<path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/>',
+  check: '<circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/>',
+  edit: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13 7l4 4"/>',
+  mail: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>',
+  calendar: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  chart: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+  eye: '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+  play: '<circle cx="12" cy="12" r="9"/><path d="M10 8l6 4-6 4z"/>',
+  package: '<path d="M12 2l9 5v10l-9 5-9-5V7z"/><path d="M3 7l9 5 9-5M12 12v10"/>',
+  download: '<path d="M12 3v12M7 10l5 5 5-5M4 21h16"/>',
+  rocket: '<path d="M14 4c3-1 6-1 6-1s0 3-1 6l-7 7-5-5z"/><path d="M9 10H5l3-3h4M14 15v4l3-3v-4"/><path d="M5 15c-1.5 1.5-2 5-2 5s3.5-.5 5-2"/>',
+  handoff: '<circle cx="9" cy="8" r="3.5"/><path d="M2 20c0-3.5 3-5.5 7-5.5 1.5 0 2.8.3 4 .8"/><path d="M16 15h6M19 12l3 3-3 3"/>',
+  chevron: '<path d="M9 6l6 6-6 6"/>'
+};
+Object.assign(ICONS, {
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+  moon: '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>',
+  monitor: '<rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/>'
+});
+Object.assign(ICONS, {
+  copy: '<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/>',
+  close: '<path d="M6 6l12 12M18 6L6 18"/>',
+  external: '<path d="M14 4h6v6M20 4l-9 9"/><path d="M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5"/>',
+  info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7h.01"/>',
+  sort: '<path d="M7 4v16M3 16l4 4 4-4M17 20V4M13 8l4-4 4 4"/>'
+});
+
+/* Theme: "system" follows the device setting; "light"/"dark" override it. Saved per browser, shared with the Flow Preview. */
+function currentTheme() { return document.documentElement.dataset.theme || "system"; }
+function setTheme(t) {
+  if (t === "system") delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = t;
+  try { if (t === "system") localStorage.removeItem("agent-builder-theme"); else localStorage.setItem("agent-builder-theme", t); } catch (e) {}
+}
+function themeToggle() {
+  const g = el("div", "theme"); g.setAttribute("role", "group"); g.setAttribute("aria-label", "Color theme");
+  [["system", "monitor", "System"], ["light", "sun", "Light"], ["dark", "moon", "Dark"]].forEach(([v, ic, label]) => {
+    const b = el("button"); b.type = "button"; b.title = label + " theme"; b.setAttribute("aria-label", label + " theme");
+    b.setAttribute("aria-pressed", currentTheme() === v ? "true" : "false");
+    b.append(icon(ic, "sm"), el("span", null, label));
+    b.addEventListener("click", () => { setTheme(v); g.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b ? "true" : "false")); });
+    g.append(b);
+  });
+  return g;
+}
+
+function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+function icon(name, cls) {
+  const s = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  s.setAttribute("viewBox", "0 0 24 24"); s.setAttribute("class", "i" + (cls ? " " + cls : "")); s.setAttribute("aria-hidden", "true");
+  s.innerHTML = ICONS[name] || ICONS.sparkles; return s;
+}
+function fmtDate(s) {
+  if (!s) return "";
+  const d = new Date(s.length <= 16 ? s + ":00" : s);
+  return isNaN(d) ? s : d.toLocaleDateString(undefined, {year: "numeric", month: "short", day: "numeric"});
+}
+/* ---------- copy to clipboard (works on file:// pages and in artifacts) ---------- */
+async function copyText(text) {
+  try { if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(text); return true; } } catch (e) {}
+  try {
+    const ta = el("textarea"); ta.value = text; ta.setAttribute("readonly", ""); ta.style.cssText = "position:fixed;top:-1000px;opacity:0";
+    document.body.append(ta); ta.select(); const ok = document.execCommand("copy"); ta.remove(); return ok;
+  } catch (e) { return false; }
+}
+function copyButton(text, label) {
+  const b = el("button", "copy"); b.type = "button";
+  const name = label || "Copy";
+  b.setAttribute("aria-label", name + ": " + text); b.title = "Copy “" + text + "”";
+  const show = (ic, t) => { b.textContent = ""; b.append(icon(ic, "sm"), el("span", null, t)); };
+  show("copy", name);
+  b.addEventListener("click", async (ev) => {
+    ev.stopPropagation();
+    const ok = await copyText(text);
+    show(ok ? "check" : "alert", ok ? "Copied" : "Select & copy");
+    b.classList.toggle("done", ok);
+    if (!ok) { const code = b.parentElement && b.parentElement.querySelector("code"); if (code) { const r = document.createRange(); r.selectNodeContents(code); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); } }
+    setTimeout(() => { show("copy", name); b.classList.remove("done"); }, 1600);
+  });
+  return b;
+}
+/* A phrase the user can paste into the chat, with its own copy button. */
+function phrase(text) {
+  const w = el("span", "phrase"); w.append(el("code", null, text), copyButton(text)); return w;
+}
+
+
+const V = {
+  pass:        {label: "Passed",        icon: "check"},
+  fail:        {label: "Failed",        icon: "alert"},
+  review:      {label: "Needs your check", icon: "eye"},
+  couldnt_run: {label: "Couldn't run",  icon: "help"},
+  not_graded:  {label: "Not graded",    icon: "help"}
+};
+const TYPE = {everyday: "Everyday", tricky: "Tricky", boundary: "Boundary", format: "Format", scenario: "Whole job"};
+const results = (DATA.results || []).slice().sort((a, b) => order(a) - order(b) || String(a.id).localeCompare(String(b.id), undefined, {numeric: true}));
+function order(r) { return {fail: 0, review: 1, couldnt_run: 2, not_graded: 3, pass: 4}[r.verdict] ?? 5; }
+const agent = DATA.agent || {}, run = DATA.run || {};
+const count = k => results.filter(r => r.verdict === k).length;
+let filter = count("fail") ? "fail" : count("review") ? "review" : "all";
+
+function render() {
+  const app = document.getElementById("app"); app.textContent = "";
+  document.title = (agent.name || "Agent") + " · Test report";
+
+  const head = el("header");
+  const logo = el("div", "logo"); logo.style.fontSize = "28px"; logo.textContent = agent.emoji || "🧪";
+  const ht = el("div", "htext"); ht.append(el("h1", null, "Test report: " + (agent.name || agent.id || "your agent")));
+  const meta = el("div", "meta");
+  if (run.date) meta.append(el("span", null, "Run " + fmtDate(run.date)));
+  if (run.method) meta.append(el("span", run.method === "simulated" ? "sim" : "", run.method === "live" ? "Live: ran the real agent" :
+      run.method === "simulated" ? "Simulated: checks the instructions, not the live setup" : run.method === "manual" ? "Checked by hand" : run.method));
+  if (agent.id) meta.append(el("span", null, "id: " + agent.id));
+  ht.append(meta);
+  head.append(logo, ht, themeToggle()); app.append(head);
+
+  if (!results.length) { app.append(el("div", "empty", "No test results yet.")); return; }
+
+  const p = count("pass"), f = count("fail"), rv = count("review"), c = count("couldnt_run") + count("not_graded"), n = results.length;
+  const score = el("section", "score"); score.setAttribute("aria-label", "Summary");
+  const big = el("div", "big"); big.append(document.createTextNode(p + "/" + n), el("small", null, " passed"));
+  const right = el("div");
+  right.append(el("div", "verdict " + (f || c || rv ? "bad" : "ok"), f ? f + (f === 1 ? " test needs" : " tests need") + " a fix." :
+      rv ? rv + (rv === 1 ? " answer needs" : " answers need") + " your check: only you can tell if it's right for your business." :
+      c ? "Some tests couldn't run." : "Everything passed. Your agent is behaving as expected."));
+  const seg = el("div", "seg"); seg.setAttribute("role", "img"); seg.setAttribute("aria-label", p + " passed, " + rv + " need your check, " + f + " failed, " + c + " couldn't run");
+  [["p", p], ["r", rv], ["f", f], ["c", c]].forEach(([k, v]) => { if (v) { const s = el("span", k); s.style.width = (100 * v / n) + "%"; seg.append(s); } });
+  const lg = el("div", "legend");
+  [["var(--output)", p + " passed"], ["var(--guard)", rv + " need your check"], ["var(--handoff)", f + " failed"], ["var(--muted)", c + " couldn't run"]].forEach(([col, t], i) => {
+    if ((i === 1 && !rv) || (i === 3 && !c)) return; const s = el("span"); const dot = el("i"); dot.style.background = col; s.append(dot, document.createTextNode(t)); lg.append(s); });
+  right.append(seg, lg); score.append(big, right); app.append(score);
+
+  const chips = el("div", "chips");
+  [["all", "All (" + n + ")"], ["fail", "Failed (" + f + ")"]].concat(rv ? [["review", "Needs your check (" + rv + ")"]] : [], [["pass", "Passed (" + p + ")"]], c ? [["couldnt_run", "Couldn't run (" + c + ")"]] : [])
+    .forEach(([k, l]) => { const b = el("button", "chip", l); b.type = "button"; b.setAttribute("aria-pressed", filter === k ? "true" : "false");
+      b.addEventListener("click", () => { filter = k; render(); }); chips.append(b); });
+  app.append(chips);
+
+  const list = el("div", "list");
+  const shown = results.filter(r => filter === "all" || r.verdict === filter || (filter === "couldnt_run" && r.verdict === "not_graded"));
+  if (!shown.length) list.append(el("div", "empty", "No tests in this group."));
+  shown.forEach(r => list.append(testCard(r)));
+  app.append(list);
+
+  const cta = el("div", "cta");
+  const id = agent.id || "my agent";
+  cta.append(el("span", null, f ? "To fix the failures, paste this into your chat with Claude:" : "To check again after a change, paste this into your chat:"),
+    phrase(f ? "fix failing tests for " + id : "run tests for " + id), phrase("add a test for " + id));
+  app.append(cta);
+}
+
+function testCard(r) {
+  const v = V[r.verdict] || V.not_graded;
+  const open = r.verdict !== "pass";
+  const wrap = el("details", "t " + (V[r.verdict] ? r.verdict : "not_graded"));
+  wrap.open = open;
+  const sum = el("summary");
+  const st = el("div", "st"); st.append(icon(v.icon)); st.setAttribute("aria-label", v.label);
+  const tt = el("div", "tt"); const h = el("h3");
+  h.append(el("span", "id", r.id || ""), document.createTextNode(" " + (r.name || "")));
+  if (r.type) h.append(el("span", "pill", TYPE[r.type] || r.type));
+  if (r.source === "you") h.append(el("span", "pill you", "Your test")); else if (r.source === "your chat") h.append(el("span", "pill you", "From your chat"));
+  tt.append(h, el("p", null, v.label + (r.reason ? ": " + r.reason : "")));
+  const chev = el("span", "chev"); chev.append(icon("chevron"));
+  sum.append(st, tt, chev); wrap.append(sum);
+
+  const body = el("div", "tb");
+  const inp = el("div"); inp.append(el("div", "lbl", "What was asked"));
+  const ib = el("div", "input");
+  if (Array.isArray(r.turns) && r.turns.length) { const ol = el("ol"); r.turns.forEach(t => ol.append(el("li", null, t))); ib.append(ol); }
+  else ib.textContent = r.input || "";
+  inp.append(ib); body.append(inp);
+
+  const cmp = el("div", "cmp");
+  const exp = el("div", "box exp"); exp.append(el("div", "lbl", "What we expected"));
+  if (r.expected_output) exp.append(el("div", "quote", r.expected_output));
+  if ((r.must_include || []).length) { exp.append(el("div", "sub", "Should:")); const ul = el("ul"); r.must_include.forEach(x => ul.append(el("li", null, x))); exp.append(ul); }
+  if ((r.must_not_include || []).length) { exp.append(el("div", "sub", "Should not:")); const ul = el("ul"); r.must_not_include.forEach(x => ul.append(el("li", null, x))); exp.append(ul); }
+  const got = el("div", "box got"); got.append(el("div", "lbl", r.verdict === "pass" ? "What it answered" : r.verdict === "review" ? "What it answered: is this how you'd do it?" : "What it actually did"));
+  got.append(el("div", "quote", r.evidence ? "“" + r.evidence + "”" : (r.answer ? clip(r.answer, 400) : "(no answer)")));
+  cmp.append(exp, got); body.append(cmp);
+
+  if (r.suggested_fix && r.verdict !== "pass") {
+    const fx = el("div", "fix"); const t = el("div", "txt"); t.append(icon("sparkles", "sm"), el("span", null, r.suggested_fix));
+    fx.append(el("div", "lbl", "Suggested fix"), t, el("div", null)); fx.lastChild.append(phrase("apply the suggested fix for " + (r.id || "this test") + " on " + (agent.id || "my agent")));
+    body.append(fx);
+  }
+  if (r.answer) {
+    const full = el("details", "full"); full.append(el("summary", null, "Show the full answer"), el("div", "quote", r.answer)); body.append(full);
+  }
+  wrap.append(body);
+  return wrap;
+}
+function clip(s, n) { s = String(s); return s.length <= n ? s : s.slice(0, n).replace(/\s+\S*$/, "") + " …"; }
+
+render();
+</script>
+</body>
+</html>

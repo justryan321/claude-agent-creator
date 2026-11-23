@@ -4,6 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Agent Flow Preview</title>
+<script>
+  /* Apply the saved theme choice before the page paints, to avoid a flash. */
+  try { const t = localStorage.getItem("agent-builder-theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
 <style>
   :root {
     --bg: #f7f5f2;
@@ -60,7 +64,21 @@
   svg.i.sm { width: 16px; height: 16px; }
 
   /* Header */
-  .hero { display: flex; gap: 18px; align-items: center; margin-bottom: 22px; }
+  :root { color-scheme: light dark; }
+  :root[data-theme="light"] { color-scheme: light; }
+  :root[data-theme="dark"] { color-scheme: dark; }
+  .hero { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "badge text theme";
+    gap: 18px; align-items: center; margin-bottom: 22px; }
+  .hero .badge { grid-area: badge; }
+  .hero .htext { grid-area: text; }
+  .hero .theme { grid-area: theme; align-self: start; }
+  .theme { justify-self: end; display: inline-flex; gap: 2px; padding: 3px; background: var(--surface); border: 1px solid var(--line);
+    border-radius: 12px; box-shadow: var(--shadow); }
+  .theme button { border: 0; background: transparent; color: var(--muted); border-radius: 9px; padding: 6px 10px; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px; font: inherit; font-size: 13px; }
+  .theme button:hover { color: var(--text); }
+  .theme button[aria-pressed="true"] { background: var(--brand-soft); color: var(--brand); font-weight: 600; }
+  .theme button:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
   .badge {
     width: 68px; height: 68px; border-radius: 20px; flex: none;
     display: grid; place-items: center; font-size: 34px;
@@ -102,7 +120,20 @@
   }
   .ico { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; flex: none; background: var(--k-soft); color: var(--k); }
   .step .num { font-size: 11.5px; font-weight: 700; color: var(--k); letter-spacing: .06em; text-transform: uppercase; }
-  .step h4 { margin: 1px 0 2px; font-size: 16px; }
+  .step h4 { margin: 1px 0 2px; font-size: 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+  .chg { font-size: 10.5px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; border-radius: 999px; padding: 1px 8px; }
+  .chg.new { background: var(--output-soft); color: var(--output); }
+  .chg.updated { background: var(--brand-soft); color: var(--brand); }
+  .step.changed { box-shadow: 0 0 0 3px var(--brand-soft), var(--shadow); }
+  .changes { display: flex; gap: 12px; align-items: flex-start; background: var(--surface); border: 1px solid var(--line);
+    border-left: 4px solid var(--brand); border-radius: 14px; padding: 12px 14px; margin-bottom: 20px; box-shadow: var(--shadow); }
+  .changes .ico { background: var(--brand-soft); color: var(--brand); width: 36px; height: 36px; border-radius: 10px; }
+  .changes b { display: block; }
+  .changes p { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
+  .changes ul { margin: 4px 0 0; padding-left: 18px; color: var(--muted); font-size: 14px; }
+  .changes s { color: var(--muted); }
+  .gcard li.isnew::after { content: "new"; margin-left: 6px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em;
+    color: var(--output); background: var(--output-soft); border-radius: 999px; padding: 0 6px; align-self: center; }
   .step p { margin: 0; color: var(--muted); font-size: 14px; }
   .k-input   { --k: var(--input);   --k-soft: var(--input-soft); }
   .k-think   { --k: var(--think);   --k-soft: var(--think-soft); }
@@ -160,6 +191,10 @@
   .legend i { width: 10px; height: 10px; border-radius: 3px; background: var(--k); display: inline-block; }
 
   @media (max-width: 720px) {
+    .hero { grid-template-columns: auto 1fr; grid-template-areas: "badge theme" "text text"; gap: 12px; }
+    .hero .theme { align-self: center; }
+    .theme button span { display: none; }
+    .theme button { padding: 6px 8px; }
     .glance { grid-template-columns: 1fr; }
     .row, .connector { grid-template-columns: 1fr; gap: 10px; }
     .connector div:last-child { display: none; }
@@ -276,6 +311,30 @@ const ICONS = {
   chevron: '<path d="M9 6l6 6-6 6"/>'
 };
 
+Object.assign(ICONS, {
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+  moon: '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>',
+  monitor: '<rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/>'
+});
+
+/* Theme: "system" follows the device setting; "light"/"dark" override it. Saved per browser, shared with My Agents. */
+function currentTheme() { return document.documentElement.dataset.theme || "system"; }
+function setTheme(t) {
+  if (t === "system") delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = t;
+  try { if (t === "system") localStorage.removeItem("agent-builder-theme"); else localStorage.setItem("agent-builder-theme", t); } catch (e) {}
+}
+function themeToggle() {
+  const g = el("div", "theme"); g.setAttribute("role", "group"); g.setAttribute("aria-label", "Color theme");
+  [["system", "monitor", "System"], ["light", "sun", "Light"], ["dark", "moon", "Dark"]].forEach(([v, ic, label]) => {
+    const b = el("button"); b.type = "button"; b.title = label + " theme"; b.setAttribute("aria-label", label + " theme");
+    b.setAttribute("aria-pressed", currentTheme() === v ? "true" : "false");
+    b.append(icon(ic, "sm"), el("span", null, label));
+    b.addEventListener("click", () => { setTheme(v); g.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b ? "true" : "false")); });
+    g.append(b);
+  });
+  return g;
+}
+
 const DEFAULT_NEXT = [
   {icon: "eye", title: "Review this flow", detail: "Check it looks right, or tell me what to change."},
   {icon: "play", title: "Test drive", detail: "Chat with your agent before anything is built."},
@@ -311,7 +370,7 @@ function render(f) {
   // Hero
   const hero = el("div", "hero");
   hero.append(el("div", "badge", a.emoji || "🤖"));
-  const ht = el("div");
+  const ht = el("div", "htext");
   const pill = el("div", "pill"); pill.append(icon("eye", "sm"), document.createTextNode("Preview · nothing has been created yet"));
   ht.append(pill, el("h1", null, a.name || "Your agent"));
   if (a.tagline) ht.append(el("p", null, a.tagline));
@@ -320,8 +379,28 @@ function render(f) {
   if (a.home) meta.append(el("span", null, "Lives in: " + a.home));
   if (a.id) meta.append(el("span", null, "id: " + a.id));
   if (meta.childNodes.length) ht.append(meta);
-  hero.append(ht);
+  hero.append(ht, themeToggle());
   app.append(hero);
+
+  // What changed since the previous version
+  const stepsArr = f.steps || [];
+  const nNew = stepsArr.filter(x => x.change === "new").length, nUpd = stepsArr.filter(x => x.change === "updated").length;
+  const removed = f.removed_steps || [];
+  const gNew = Object.values(f.glance_new || {}).reduce((m, x) => m + x.length, 0);
+  if (nNew || nUpd || removed.length || gNew) {
+    const box = el("div", "changes"); box.setAttribute("role", "status");
+    const ci = el("div", "ico"); ci.style.cssText = "display:grid;place-items:center;flex:none"; ci.append(icon("sparkles"));
+    const tx = el("div");
+    const parts = [];
+    if (nNew) parts.push(nNew + " new step" + (nNew > 1 ? "s" : ""));
+    if (nUpd) parts.push(nUpd + " changed step" + (nUpd > 1 ? "s" : ""));
+    if (removed.length) parts.push(removed.length + " removed");
+    if (gNew) parts.push(gNew + " new rule" + (gNew > 1 ? "s" : "") + " at a glance");
+    tx.append(el("b", null, "Updated" + (f.revision ? " (version " + f.revision + ")" : "") + ": your changes are highlighted"),
+              el("p", null, parts.join(" · ") + "."));
+    if (removed.length) { const ul = el("ul"); removed.forEach(r => { const li = el("li"); li.append(document.createTextNode("Removed: "), el("s", null, r)); ul.append(li); }); tx.append(ul); }
+    box.append(ci, tx); app.append(box);
+  }
 
   // At a glance
   const g = f.glance || {};
@@ -332,7 +411,9 @@ function render(f) {
       if (!items || !items.length) continue;
       const c = el("div", "gcard " + cls);
       const h = el("h3"); h.append(icon(ic, "sm"), document.createTextNode(label));
-      const ul = el("ul"); items.forEach(t => ul.append(el("li", null, t)));
+      const key = cls === "ask" ? "asks_first" : cls;
+      const fresh = new Set(((f.glance_new || {})[key] || []).map(x => String(x).toLowerCase()));
+      const ul = el("ul"); items.forEach(t => ul.append(el("li", fresh.has(String(t).toLowerCase()) ? "isnew" : null, t)));
       c.append(h, ul); glance.append(c);
     }
     app.append(glance);
@@ -347,11 +428,13 @@ function render(f) {
   steps.forEach((s, i) => {
     if (i > 0) { const c = el("div", "connector"); c.append(el("div"), el("div")); flow.append(c); }
     const row = el("div", "row");
-    const card = el("div", "step " + kindClass(s.kind));
+    const card = el("div", "step " + kindClass(s.kind) + (s.change ? " changed" : ""));
     usedKinds.add(KINDS[s.kind] ? s.kind : "think");
     const ic = el("div", "ico"); ic.append(icon(s.icon));
     const body = el("div");
-    body.append(el("div", "num", "Step " + (i + 1) + " · " + (KINDS[s.kind] || KINDS.think)), el("h4", null, s.title || ""));
+    const h4 = el("h4", null, s.title || "");
+    if (s.change === "new" || s.change === "updated") h4.append(el("span", "chg " + s.change, s.change === "new" ? "New" : "Updated"));
+    body.append(el("div", "num", "Step " + (i + 1) + " · " + (KINDS[s.kind] || KINDS.think)), h4);
     if (s.detail) body.append(el("p", null, s.detail));
     card.append(ic, body);
     row.append(card);
