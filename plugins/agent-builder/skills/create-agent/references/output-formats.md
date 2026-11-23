@@ -2,6 +2,10 @@
 
 Generate the files for every destination the user chose. Put all of them in one folder named `<agent-id>/`, with a `HOW-TO-USE.md` and an `agent-brief.md` at the top level. Replace every `<placeholder>`; none may remain in the final files.
 
+## Always included: the Flow Preview
+
+Keep `flow.json` and `agent-flow.html` from the Flow Preview step (`flow-preview.md`) in the `<agent-id>/` folder, updated to the final design. Mention it in HOW-TO-USE.md: "Open `agent-flow.html` in your browser for a picture of how your agent works." Without file tools, the artifact or the text diagram shown earlier is enough.
+
 ## Always included: `agent-brief.md`
 
 The agent's "save file". It lets the user (or the Agent Builder later) update the agent without starting over, and works as bring-your-own-context input.
@@ -333,4 +337,5 @@ Your agent's behavior lives in its instructions (<file name>). Edit that text in
 - [ ] HOW-TO-USE.md has steps for every chosen destination and 2–3 example requests.
 - [ ] No API keys, passwords, or personal data are written into any file (re-check imported context).
 - [ ] `agent-brief.md` is included and matches the final instructions.
+- [ ] The Flow Preview was approved, and `agent-flow.html` (if files are possible) matches the final design.
 - [ ] If installed: the file is in the right folder and you told the user the exact first thing to type.

@@ -1,0 +1,69 @@
+{
+  "agent": {
+    "name": "Page Summarizer",
+    "id": "page-summarizer",
+    "emoji": "📄",
+    "tagline": "Reviews a web page, summarizes it, and lists the important key items.",
+    "home": "Claude Code subagent",
+    "for": "Just me"
+  },
+  "glance": {
+    "can": [
+      "Read web pages",
+      "Read files you point to",
+      "Search the web when asked"
+    ],
+    "wont": [
+      "Add facts that aren't on the page",
+      "Guess when a page can't be loaded"
+    ],
+    "asks_first": [
+      "Nothing. It only reads, it never changes anything"
+    ]
+  },
+  "steps": [
+    {
+      "kind": "input",
+      "icon": "message",
+      "title": "You share a link",
+      "detail": "Paste a URL, point to a file, or paste text, and say \"summarize this\"."
+    },
+    {
+      "kind": "tool",
+      "icon": "globe",
+      "title": "Reads the whole page",
+      "detail": "Opens the link and reads all of it before writing anything.",
+      "branch": {
+        "kind": "handoff",
+        "icon": "alert",
+        "when": "If the page won't load",
+        "then": "Tells you it couldn't read it (paywall, login) and asks you to paste the text."
+      }
+    },
+    {
+      "kind": "think",
+      "icon": "sparkles",
+      "title": "Works out what matters",
+      "detail": "Identifies the type of page and who it's for, then picks out decisions, dates, numbers, and actions."
+    },
+    {
+      "kind": "guard",
+      "icon": "shield",
+      "title": "Checks accuracy",
+      "detail": "Sticks to what the page says and quotes numbers and dates exactly.",
+      "branch": {
+        "kind": "guard",
+        "icon": "help",
+        "when": "If something is unclear",
+        "then": "Flags it as ambiguous instead of guessing."
+      }
+    },
+    {
+      "kind": "output",
+      "icon": "list",
+      "title": "You get the review",
+      "detail": "Title line, 3–5 sentence summary, 5–10 bolded key items, and \"Worth noting\" when needed. Under 300 words."
+    }
+  ],
+  "next": null
+}
