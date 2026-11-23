@@ -15,9 +15,18 @@ The list lives in a **registry** (`my-agents.json`) managed by the script `../cr
   ```bash
   python3 <create-agent-dir>/scripts/agent_registry.py list --all
   ```
-  `<create-agent-dir>` is the `create-agent` folder next to this skill's folder.
+  `<create-agent-dir>` is the `create-agent` folder next to this skill's folder. Run it from the user's current project folder: the list covers agents from **every** project, and the current folder is used to flag the ones that only work in a different project.
 - **claude.ai / no file access between chats:** ask: "Do you have your **my-agents.json** file? Upload it here (it may be in your 'My Agents' Project)." If you can run code, save it and pass `--registry <path>` to every command. If you can't, read the JSON yourself and follow the same rules, then hand back an updated file (step 5).
 - **No registry yet:** say they haven't built any agents with the builder yet (or the list was started on another device). Offer to build one with `/agent-builder:create-agent`. If they have agents built some other way, offer to add one to the list by running the builder's "update my agent" flow on its files.
+
+### Personal vs project agents
+
+The list includes every agent the user has built, from all their projects. Each one has a **scope**:
+- **Works in every project** (personal): installed under `~/.claude/`, a standalone app, or a claude.ai Project ("On claude.ai").
+- **Project only**: installed inside one project's `.claude/` folder. It only works when Claude Code is opened in that project. The list marks these `⛔ only works in <project>` when the user is somewhere else.
+- **Where it works: unknown**: an older entry saved without full paths. Suggest "update <id>" to fix it, and don't move or delete its files automatically.
+
+Explain this in one plain sentence when it matters, for example: "API Code Reviewer lives in your *acme-api* project, so it only works when you open that project." To show only the agents that work right here, add `--usable-here` to `list`.
 
 ## 2. Show the overview
 
@@ -41,7 +50,15 @@ Then show the **visual dashboard**:
   ```
   If the browser doesn't open (remote or headless machine), give the full path and say "open this file in your web browser".
 
-The dashboard has totals, search, and filters (active/archived, where it lives, tags), and a card per agent with what it does, its abilities, test status, tags, and notes.
+The dashboard has:
+- totals
+- a **Needs attention** strip: failing tests, no tests, missing files, unclear locations, each with a phrase to fix it
+- search, a sort menu, and filters (active/archived, where it lives, tags)
+- a System / Light / Dark theme switch, remembered in that browser
+- a card per agent with one-click **Copy** buttons on the phrases to paste into the chat
+- a **Details** panel per agent: full file paths, test history, a preview of its instructions, and links to its Flow Preview and test report.
+
+Each card shows what the agent does, its abilities, test status, tags, and notes.
 
 ## 3. Offer actions
 
@@ -49,8 +66,8 @@ Ask what they'd like to do, offering only what makes sense, e.g. "Want to update
 
 | They want to… | Do this |
 |---|---|
-| **See details** of one | `show <id>`, then summarize it in plain words (job, where it lives, abilities, last test, notes) |
-| **Change / improve** one | Hand off to the Agent Builder's "update my agent" flow (`/agent-builder:create-agent`), loading the agent from its `brief_path` (or the file at its destination). The builder re-registers it afterwards. |
+| **See details** of one | `check <id>` (where it works, and each file's full path with ✅ / ❌ missing), then summarize it in plain words: job, where it lives, abilities, last test, notes. Use `show <id>` for the raw entry. |
+| **Change / improve** one | Hand off to the Agent Builder's "update my agent" flow (`/agent-builder:create-agent`), loading the agent from its `brief_path` (or the file at its destination). Full paths mean this works from any project. For a project-only agent, mention that testing it live works best from inside its project. The builder re-registers it afterwards. |
 | **Run its tests** / **add a test** | Hand off to the Agent Builder's Phase 6 with that agent's `tests/test-cases.json` (in the folder holding `agent-brief.md`). Results are saved with `set-tests`. |
 | **Tag** it | `tag <id> --add work clients` / `--remove old`. Suggest a few tags if they're unsure (work, personal, business, team, experiment). |
 | **Add a note** | `note <id> "…"`. This replaces the note; read the current one first and combine them if they want to keep it. |
@@ -62,16 +79,17 @@ Commands are `python3 <create-agent-dir>/scripts/agent_registry.py [--registry P
 
 ### Deleting safely
 
-1. Run `show <id>` and list **exactly** what would be deleted: each destination `location` that is a file or folder on this computer, plus the folder with `agent-brief.md` and its tests. Note things you *can't* delete for them (a claude.ai Project, an uploaded skill) and tell them where to remove those by hand.
+1. Run `check <id>` and list **exactly** what would be deleted, using the full paths it prints: each file or folder on this computer marked ✅, plus the agent folder with `agent-brief.md` and its tests. Skip anything marked ❌ missing (already gone). Note things you *can't* delete for them (☁️ a claude.ai Project, an uploaded skill) and tell them where to remove those by hand. If `check` shows a path that isn't a full path (⚠️), **don't delete anything**. Explain that the location is unclear and offer to remove just the list entry.
 2. Ask them to confirm by typing **"yes, delete <Name>"**. Anything else cancels. Suggest **archive** instead if they might want it back.
 3. Delete only the confirmed paths, then run `remove <id>`. Confirm what was removed.
 
-Never delete anything outside the listed paths, and never delete in bulk without confirming each agent.
+Never delete anything outside the listed full paths, never build a path yourself by joining it to the current folder, and never delete in bulk without confirming each agent. The same rules apply when archiving moves a file aside.
 
 ## 4. Keeping the list accurate
 
 - The Agent Builder adds agents automatically when they're built, updates them when they change, and records test results. You don't need to add them by hand.
 - If an entry's file is missing (for example, they deleted it manually), mention it and offer to archive or remove the entry.
+- Entries flagged "location unclear" were saved before full paths were required. Running "update <id>" re-registers them with full paths and the right scope.
 
 ## 5. On claude.ai: hand the file back
 

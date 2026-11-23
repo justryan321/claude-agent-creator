@@ -88,7 +88,7 @@ Before the test drive and before creating any files, show a **visual flow diagra
 
 1. Write the flow spec from the Agent Card.
 2. Show it the best way the environment allows: an HTML artifact (claude.ai), a rendered page opened in their browser (Claude Code, via `scripts/render_flow.py`), and always a compact emoji version in the chat.
-3. Ask: "Does this look right? Reply **looks good** to try it out, or tell me what to change." Update and re-show it until they approve. **Don't continue until they do.**
+3. Ask: "Does this look right? Reply **looks good** to try it out, or tell me what to change." Update and re-show it until they approve, highlighting what changed each time. **Don't continue until they do.**
 
 You can show the Agent Card and the Flow Preview together and ask for one approval.
 
@@ -119,7 +119,7 @@ Generate the files exactly as specified in `references/output-formats.md`, inclu
 - **In Claude Code:** ask: "Want me to install it for you (recommended), or just save the files in a folder?" For install, ask "Just for you everywhere, or only in this project?" Check the target first, and never overwrite an existing file without asking. Otherwise write to `./<agent-id>/`.
 - **Without file tools:** present each file as a separate code block with its filename as a heading, the most important one (what they paste) first.
 - Run the checklist at the end of `references/output-formats.md` before presenting.
-- **Register the agent in My Agents** (see "Register the agent" in `references/output-formats.md`). In Claude Code, run `scripts/agent_registry.py upsert <entry.json>`. On claude.ai, add or update the entry in the user's `my-agents.json` (start a new one if they don't have it) and hand the file back with the other files.
+- **Register the agent in My Agents** (see "Register the agent" in `references/output-formats.md`), with **full paths** and its scope: personal (works in every project) or this project only, with the project folder. In Claude Code, run `scripts/agent_registry.py upsert <entry.json>`. On claude.ai, add or update the entry in the user's `my-agents.json` (start a new one if they don't have it) and hand the file back with the other files.
 
 ## Phase 6 · Test the finished agent
 
@@ -128,8 +128,8 @@ Once the files are built (and installed, if chosen), check that the real agent w
 1. **Generate 6–8 test cases** covering everyday requests, tricky inputs, boundaries (won't do / asks first / handoff), and format. Use real question → answer pairs from imported context and any expected answers the user gave earlier. Show them as a short numbered list.
 2. **Offer the user's own tests:** "Want to add your own test? Give me something you'd ask it and the answer you'd expect back. A full answer or just 'it should…' both work." Convert whatever they give into a case and show the expectations so they can correct them. They can add as many as they like.
 3. **Run them** against the real agent, each in a fresh context and in **test mode** (nothing changes for real): the installed subagent or skill in Claude Code, `tests/run_tests.py` for the standalone app, or a clearly labeled simulation plus a manual checklist for Claude.ai Projects.
-4. **Report** with ✅ / ❌ / ⚪, quoting what went wrong for each failure and a suggested fix in plain words. With the user's OK, apply the fixes, then **re-run all tests**, up to 3 rounds.
-5. Save `tests/test-cases.json` and `tests/test-report.md` with the agent's files, and record the result in My Agents: `scripts/agent_registry.py set-tests <agent-id> --passed N --total N --method live|simulated|manual` (on claude.ai, update the `tests` field in `my-agents.json`).
+4. **Report** with ✅ / ❌ / ⚪, quoting what went wrong for each failure and a suggested fix in plain words. Also show the **visual test report** (expected vs. actual for each failure; see `references/test-cases.md` §6). With the user's OK, apply the fixes, then **re-run all tests**, up to 3 rounds.
+5. Save `tests/test-cases.json`, `tests/test-report.md`, `tests/test-results.json`, and `tests/test-report.html` with the agent's files, and record the result in My Agents: `scripts/agent_registry.py set-tests <agent-id> --passed N --total N --method live|simulated|manual` (on claude.ai, update the `tests` field in `my-agents.json`).
 
 If the user wants to skip testing, let them, and mention they can say **"run my tests"** anytime.
 
@@ -140,6 +140,19 @@ If the user wants to skip testing, let them, and mention they can say **"run my 
 3. 💡 One or two ideas to make it better later (for example "add your price list as knowledge").
 4. 🔁 "Anytime you want to change it, run the Agent Builder again and say **'update my agent'**, and share `agent-brief.md` or the agent file. Say **'run my tests'** or **'add a test'** to check it again."
 5. 🗂️ "See all your agents anytime with **/agent-builder:my-agents** (or just say *my agents*)."
+
+## Phrases users paste from the pages
+
+The Flow Preview, the My Agents dashboard, and the test report give users ready-made phrases to copy into the chat. Recognize them and act:
+
+| Phrase | Do this |
+|---|---|
+| `update <id>` | "Updating an existing agent" (below) |
+| `run tests for <id>` · `add tests for <id>` · `add a test for <id>` · `show my test report` | Phase 6 for that agent |
+| `fix failing tests for <id>` | Load its latest `tests/test-results.json`, explain each failure plainly, apply the suggested fixes with the user's OK, then re-run all tests |
+| `apply the suggested fix for <T#> on <id>` | Show that one fix, apply it with the user's OK, then re-run all tests |
+| `fix the missing file for <id>` | Run `agent_registry.py check <id>`. Reinstall from the agent folder if the brief is there; otherwise offer to archive or remove the entry |
+| `tag <id> as …` · `archive <id>` · `restore <id>` | Hand off to `/agent-builder:my-agents` |
 
 ## Updating an existing agent
 

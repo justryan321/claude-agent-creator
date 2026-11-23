@@ -10,7 +10,8 @@ Usage (from the agent's folder, with the virtual environment active):
 
 Reads tests/test-cases.json, sends each input to the agent in "test mode" (it
 can't change anything for real), asks Claude to grade each answer against
-your expectations, prints a summary, and writes tests/test-report.md.
+your expectations, prints a summary, and writes tests/test-report.md plus
+tests/test-results.json (used for the visual HTML report).
 Uses your ANTHROPIC_API_KEY, so each run costs a little.
 """
 
@@ -143,7 +144,18 @@ async def main() -> int:
         lines += ["<details><summary>Agent's full answer</summary>", "", answer or "(empty)", "", "</details>", ""]
     report = TESTS_DIR / "test-report.md"
     report.write_text("\n".join(lines), encoding="utf-8")
+    structured = {
+        "agent": {"id": spec.get("agent", ""), "name": AGENT_NAME},
+        "run": {"date": f"{datetime.now():%Y-%m-%dT%H:%M}", "method": "live"},
+        "results": [{**{k: case.get(k) for k in ("id", "name", "type", "source", "input", "expected_output",
+                                                 "must_include", "must_not_include", "notes")},
+                     "verdict": v["verdict"], "reason": v.get("reason", ""), "evidence": v.get("evidence", ""),
+                     "suggested_fix": v.get("suggested_fix", ""), "answer": answer}
+                    for case, answer, v in results],
+    }
+    (TESTS_DIR / "test-results.json").write_text(json.dumps(structured, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"\nFull report: {report}")
+    print("For a visual report, ask the Agent Builder: \"show my test report\".")
     return 1 if counts["fail"] or counts["couldnt_run"] else 0
 
 
