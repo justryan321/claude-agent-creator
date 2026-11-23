@@ -41,7 +41,7 @@ Rules:
 - **Branches** show what happens off the happy path. Put one next to the step where it occurs, and add one for each important boundary, ask-first action, or human handoff. Use 1–3 branches total. `when` starts with "If…".
 - **Asks-first actions** become a `guard` step or branch, e.g. "If it's about to send an email → shows you the draft and waits for your yes".
 - **Icons** (pick the closest): `message`, `user`, `users`, `book` (knowledge), `globe` (web), `search`, `file`, `edit`, `plug` (app connection), `mail`, `calendar`, `clock`, `chart`, `terminal` (runs code), `sparkles` (thinking), `shield`, `alert`, `help`, `list`, `check`, `eye`, `handoff`, `play`, `package`, `download`, `rocket`.
-- `"next": null` uses the standard "What happens next" strip (Review this flow → Test drive → Build the files → Set up → Start using it). Only override it if the plan really differs (for example, no test drive), with a list of `{"icon", "title", "detail"}`.
+- `"next": null` uses the standard "What happens next" strip (Review this flow → Test drive → Build the files → Set up → Test it → Start using it). Only override it if the plan really differs (for example, no test drive), with a list of `{"icon", "title", "detail"}`.
 - No secrets or other people's personal data, the same as in the agent files.
 
 ## 2. Show it (pick the best option the environment supports)
@@ -69,7 +69,7 @@ Rules:
         ↓
  5. ✅ You get the review (summary + key items, under 300 words)
 
-Next: 👀 Review (you are here) → 🧪 Test drive → 📦 Build files → ⬇️ Set up → 🚀 Use it
+Next: 👀 Review (you are here) → 🧪 Test drive → 📦 Build files → ⬇️ Set up → ✅ Test it → 🚀 Use it
 ```
 
 ### Mermaid fallback
