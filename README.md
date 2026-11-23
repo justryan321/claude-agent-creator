@@ -19,6 +19,20 @@ Agent Creator is a Claude plugin. Once it's installed, run one command and Claud
 
 <p align="center"><img src="docs/flow-preview.png" alt="Example Flow Preview diagram for a Page Summarizer agent" width="720"></p>
 
+### Agents that need your expertise (workflow mode)
+
+Some agents have to make decisions the way *you* would at several steps of a job: a contractor's intake → estimate → bid → change orders, a bookkeeper's month-end close, a recruiter's screen → interview → offer. When the builder spots this, it switches to **workflow mode**:
+
+- **Walks through one of your real jobs**, stage by stage, to capture your rules of thumb, exceptions, and "that's when I call someone" moments into a **playbook** you can edit anytime.
+- **Never guesses your business rules.** Prices, thresholds, and policies it doesn't know are marked **❓ needs your answer**, and the agent asks you instead of inventing them.
+- **Expert checks:** structural, code, legal, and safety calls are always flagged for a person, never decided by the agent.
+- **Keeps changing data current:** price sheets and rates live in dated files, and the agent warns you when they're stale.
+- **A two-level Flow Preview:** a stage map, then each stage's steps, rules, and open questions.
+- **Tests whole jobs**, not just single questions, and marks answers that only you can judge as **👀 needs your check**.
+- **Saves progress as you go**, so a longer build can pick up where it left off. Optionally, the agent remembers each job between conversations.
+
+It takes 30–45 minutes instead of 5–10, or you can build one stage first. See the [Job Assistant example](examples/contractor-job-assistant/) for a remodeling contractor, and the **🏗️ Trade & Service Business Ops** template.
+
 ### Testing your agent
 
 After your agent is built, the builder writes **6–8 test cases** for it: everyday requests, tricky inputs, and things it should refuse or ask about first. It runs them against the real agent and shows ✅/❌ results with plain-language fixes. **You can add your own tests too:** give it something you'd ask and the answer you'd expect back. Tests are saved with your agent, so you can say *"run my tests"* after every change to make sure nothing broke.

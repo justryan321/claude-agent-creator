@@ -51,6 +51,26 @@ You: <ideal reply in the right tone and length>
 - **Uses knowledge documents:** "Base answers on the documents. If they don't cover the question, say so instead of guessing."
 - **Learners/children:** age-appropriate language, encourage thinking before giving answers (if the user chose that).
 
+## Workflow agents: core instructions + playbook
+
+For workflow-mode agents (`workflow-mode.md`), keep the 150–600 word core instructions about identity, tone, stage overview, and boundaries, and put the decision rules in `playbook.md`. Don't compress the rules to fit the word limit; that's how know-how gets lost. Add these sections to the core instructions:
+
+```markdown
+## How a job flows
+You help with these stages: 1 <stage> → 2 <stage> → 3 <stage>. Work out which stage a request belongs to before answering. At the end of each stage, list what passes to the next one (see "Hand-offs" in the playbook).
+
+## Your playbook
+Your playbook (below / in `playbook.md`) holds <Name>'s rules for each stage. Follow it over your own general knowledge, because it reflects how this business actually works. When a rule is marked ❓, or a situation isn't covered, don't guess: say what you'd need to know and ask <Name>.
+
+## Expert checks
+<the expert-check list>. For these, flag the issue, explain what to check and with whom, and never state that something is compliant, legal, or safe.
+
+## Up-to-date information
+<changing-data files>. Check the "Last updated" date before using one. If it's older than <N> weeks, say so and ask before using the numbers.
+```
+
+Plus **Works in: <place>** in "What you know", and, if the agent remembers jobs, how to read and update job files (or end each stage with a Job summary block).
+
 ## Description line (for subagents and skills)
 
 Subagents and skills also need a one-to-two-sentence **description** that tells Claude *when* to use them. Write it as: what it does + "Use when …" with concrete trigger phrases. Example:

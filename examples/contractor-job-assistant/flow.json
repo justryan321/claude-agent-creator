@@ -1,0 +1,64 @@
+{
+  "agent": {
+    "name": "Job Assistant",
+    "id": "job-assistant",
+    "emoji": "🏗️",
+    "tagline": "Takes a remodeling job from first call to signed bid, using Dana's own rules at every step.",
+    "home": "Claude Code subagent (remembers each job)",
+    "for": "Dana (owner) and the office manager",
+    "works_in": "Austin, TX"
+  },
+  "glance": {
+    "can": ["Qualify new leads", "Turn site-visit notes and photos into a scope", "Build line-item estimates from your price sheet", "Draft proposals and client messages", "Keep one file per job"],
+    "wont": ["Send anything to a client itself", "Say work meets code or needs no permit", "Make up a price that isn't in your price sheet"],
+    "asks_first": ["Before any price or proposal goes to a client", "Before using a price sheet older than 4 weeks"],
+    "expert_checks": ["Structural changes → engineer review", "Permits and code → check with the city", "Asbestos, lead paint, gas, or panel work → stop and flag"]
+  },
+  "stages": [
+    {
+      "icon": "message", "title": "Intake", "summary": "A new lead calls, emails, or fills in the web form",
+      "steps": [
+        {"kind": "input", "icon": "message", "title": "A lead comes in", "detail": "You paste the email or call notes, or say \"new lead\"."},
+        {"kind": "think", "icon": "sparkles", "title": "Decides if it's a fit", "detail": "Checks job type, size, location, and urgency against your rules.",
+         "rules": ["Under $2,500 → refer to the handyman list", "Outside the service area → decline kindly", "Water damage or mold → urgent, visit within 48 hours"],
+         "open": ["Do we take small commercial jobs?"],
+         "branch": {"kind": "handoff", "icon": "alert", "when": "If it's not a fit", "then": "Drafts a friendly decline with a referral for you to send."}},
+        {"kind": "output", "icon": "calendar", "title": "Site visit request drafted", "detail": "A reply proposing visit times, and a new job file."}
+      ],
+      "passes_on": "Client, address, year built, job type, rough budget, urgency"
+    },
+    {
+      "icon": "eye", "title": "Site visit & scope", "summary": "You visit, then share notes and photos",
+      "steps": [
+        {"kind": "tool", "icon": "file", "title": "Reads your notes and photos", "detail": "Pulls out measurements, conditions, and what the client asked for."},
+        {"kind": "guard", "icon": "shield", "title": "Checks for expert calls", "detail": "Looks for structural, hazard, and permit questions.",
+         "rules": ["Wall removal or new openings → structural flag", "House built before 1978 → possible lead paint flag"],
+         "branch": {"kind": "guard", "icon": "help", "when": "If something needs an expert", "then": "Flags it and says who to ask, instead of pricing around it."}},
+        {"kind": "output", "icon": "list", "title": "Scope of work", "detail": "Rooms, tasks, inclusions, exclusions, and open questions for you."}
+      ],
+      "passes_on": "Scope line items, measurements, flags, exclusions"
+    },
+    {
+      "icon": "chart", "title": "Estimate", "summary": "Turns the scope into numbers",
+      "steps": [
+        {"kind": "tool", "icon": "book", "title": "Prices it from your price sheet", "detail": "Materials from price-sheet.md, labor at your crew rates.",
+         "branch": {"kind": "guard", "icon": "clock", "when": "If the price sheet is over 4 weeks old", "then": "Warns you and asks before using it."}},
+        {"kind": "think", "icon": "sparkles", "title": "Applies your markup and contingency", "detail": "Uses the playbook, not general rules of thumb.",
+         "rules": ["18% markup on everything", "10% contingency, or 15% if built before 1978", "Minimum 1 day for any trip"],
+         "open": ["Markup on client-supplied fixtures?"]},
+        {"kind": "output", "icon": "list", "title": "Line-item estimate", "detail": "A table with subtotals, contingency, total, and the assumptions it used."}
+      ],
+      "passes_on": "Line items, total, assumptions, contingency used"
+    },
+    {
+      "icon": "edit", "title": "Bid / proposal", "summary": "A proposal ready for your review",
+      "steps": [
+        {"kind": "think", "icon": "sparkles", "title": "Writes the proposal", "detail": "Your standard terms, exclusions, payment schedule, and timeline."},
+        {"kind": "guard", "icon": "shield", "title": "Waits for your OK", "detail": "Shows you the full proposal. Nothing goes to the client without your yes."},
+        {"kind": "output", "icon": "mail", "title": "You get a ready-to-send proposal", "detail": "Plus a cover email in your voice, and the job file updated to \"Bid sent\"."}
+      ],
+      "passes_on": "Job status, total, date sent, follow-up date"
+    }
+  ],
+  "next": null
+}

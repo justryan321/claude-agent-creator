@@ -96,7 +96,7 @@
   .meta span { font-size: 12.5px; color: var(--muted); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 2px 8px; }
 
   /* At a glance */
-  .glance { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 28px; }
+  .glance { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; margin-bottom: 28px; }
   .gcard { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; box-shadow: var(--shadow); }
   .gcard h3 { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; font-size: 13px; text-transform: uppercase; letter-spacing: .06em; }
   .gcard ul { margin: 0; padding: 0; list-style: none; }
@@ -105,6 +105,40 @@
   .gcard.can h3 { color: var(--tool); }
   .gcard.wont h3 { color: var(--handoff); }
   .gcard.ask h3 { color: var(--guard); }
+  .gcard.expert h3 { color: var(--think); }
+
+  /* Workflow stages */
+  .stagemap { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 28px; }
+  .stagemap a {
+    display: inline-flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text);
+    background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px 8px 8px;
+    box-shadow: var(--shadow); font-weight: 600; font-size: 14px;
+  }
+  .stagemap a:hover { border-color: var(--brand); }
+  .stagemap .sn { width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center; background: var(--brand-soft); color: var(--brand); flex: none; }
+  .stagemap .open-count { font-size: 11.5px; font-weight: 700; color: var(--guard); background: var(--guard-soft); border-radius: 999px; padding: 1px 7px; }
+  .stagemap .chev { color: var(--muted); }
+  .stage { margin-bottom: 30px; scroll-margin-top: 16px; }
+  .stage > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .stage > summary::-webkit-details-marker { display: none; }
+  .stage > summary .ico { background: var(--brand-soft); color: var(--brand); }
+  .stage > summary .lbl { font-size: 11.5px; font-weight: 700; color: var(--brand); text-transform: uppercase; letter-spacing: .06em; }
+  .stage > summary h3 { margin: 0; font-size: 18px; }
+  .stage > summary p { margin: 0; color: var(--muted); font-size: 14px; }
+  .stage > summary .tog { margin-left: auto; color: var(--muted); transition: transform .15s; }
+  .stage[open] > summary .tog { transform: rotate(90deg); }
+  .stage .flow { margin-bottom: 0; padding-left: 2px; }
+  .passes {
+    display: flex; gap: 10px; align-items: flex-start; margin-top: 14px; padding: 10px 14px;
+    border-radius: 12px; background: var(--bg-accent); color: var(--muted); font-size: 13.5px;
+  }
+  .passes b { color: var(--text); }
+  .rules { margin: 8px 0 0; padding: 8px 10px; border-radius: 10px; background: var(--k-soft); list-style: none; font-size: 13.5px; }
+  .rules .rl { font-size: 11px; font-weight: 700; color: var(--k); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 2px; }
+  .rules li { padding: 2px 0 2px 14px; position: relative; }
+  .rules li::before { content: "›"; position: absolute; left: 2px; color: var(--k); font-weight: 700; }
+  .openq { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .openq span { font-size: 12.5px; background: var(--guard-soft); color: var(--guard); border: 1px dashed var(--guard); border-radius: 8px; padding: 2px 8px; }
 
   h2.section { display: flex; align-items: center; gap: 10px; font-size: 18px; margin: 0 0 14px; }
   h2.section small { font-weight: 400; color: var(--muted); font-size: 14px; }
@@ -301,6 +335,7 @@ const DEFAULT_NEXT = [
 ];
 
 const KINDS = {input: "Your request", think: "Thinking", tool: "Uses an ability", guard: "Safety check", output: "Result", handoff: "Hand-off / exception"};
+const usedKinds = new Set();
 
 function el(tag, cls, text) {
   const e = document.createElement(tag);
@@ -318,6 +353,47 @@ function icon(name, cls) {
 }
 function kindClass(k) { return "k-" + (KINDS[k] ? k : "think"); }
 
+function renderSteps(steps, prefix) {
+  const flow = el("div", "flow");
+  steps.forEach((s, i) => {
+    if (i > 0) { const c = el("div", "connector"); c.append(el("div"), el("div")); flow.append(c); }
+    const row = el("div", "row");
+    const card = el("div", "step " + kindClass(s.kind) + (s.change ? " changed" : ""));
+    usedKinds.add(KINDS[s.kind] ? s.kind : "think");
+    const ic = el("div", "ico"); ic.append(icon(s.icon));
+    const body = el("div");
+    body.style.minWidth = "0";
+    const h4 = el("h4", null, s.title || "");
+    if (s.change === "new" || s.change === "updated") h4.append(el("span", "chg " + s.change, s.change === "new" ? "New" : "Updated"));
+    body.append(el("div", "num", "Step " + prefix + (i + 1) + " · " + (KINDS[s.kind] || KINDS.think)), h4);
+    if (s.detail) body.append(el("p", null, s.detail));
+    if (s.rules && s.rules.length) {
+      const ul = el("ul", "rules"); ul.append(el("div", "rl", "Decides by your rules"));
+      s.rules.forEach(r => ul.append(el("li", null, r)));
+      body.append(ul);
+    }
+    if (s.open && s.open.length) {
+      const oq = el("div", "openq");
+      s.open.forEach(q => oq.append(el("span", null, "❓ Needs your answer: " + q)));
+      body.append(oq);
+    }
+    card.append(ic, body);
+    row.append(card);
+    if (s.branch) {
+      const b = s.branch;
+      const br = el("div", "branch " + kindClass(b.kind || "handoff"));
+      usedKinds.add(KINDS[b.kind] ? b.kind : "handoff");
+      const bi = el("div", "ico"); bi.append(icon(b.icon || "alert"));
+      const bb = el("div"); bb.append(el("div", "when", b.when || "Otherwise"), el("div", "then", b.then || ""));
+      br.append(bi, bb); row.append(br);
+    } else {
+      row.append(el("div"));
+    }
+    flow.append(row);
+  });
+  return flow;
+}
+
 function render(f) {
   const app = document.getElementById("app");
   const a = f.agent || {};
@@ -333,13 +409,14 @@ function render(f) {
   const meta = el("div", "meta");
   if (a.for) meta.append(el("span", null, "For: " + a.for));
   if (a.home) meta.append(el("span", null, "Lives in: " + a.home));
+  if (a.works_in) meta.append(el("span", null, "Works in: " + a.works_in));
   if (a.id) meta.append(el("span", null, "id: " + a.id));
   if (meta.childNodes.length) ht.append(meta);
   hero.append(ht, themeToggle());
   app.append(hero);
 
   // What changed since the previous version
-  const stepsArr = f.steps || [];
+  const stepsArr = Array.isArray(f.stages) && f.stages.length ? f.stages.flatMap(st => st.steps || []) : (f.steps || []);
   const nNew = stepsArr.filter(x => x.change === "new").length, nUpd = stepsArr.filter(x => x.change === "updated").length;
   const removed = f.removed_steps || [];
   const gNew = Object.values(f.glance_new || {}).reduce((m, x) => m + x.length, 0);
@@ -360,14 +437,15 @@ function render(f) {
 
   // At a glance
   const g = f.glance || {};
-  const groups = [["can", "check", "Can do", g.can], ["wont", "alert", "Won't do", g.wont], ["ask", "help", "Asks you first", g.asks_first]];
+  const groups = [["can", "check", "Can do", g.can], ["wont", "alert", "Won't do", g.wont], ["ask", "help", "Asks you first", g.asks_first],
+                  ["expert", "eye", "Always flags for a person", g.expert_checks]];
   if (groups.some(x => x[3] && x[3].length)) {
     const glance = el("div", "glance");
     for (const [cls, ic, label, items] of groups) {
       if (!items || !items.length) continue;
       const c = el("div", "gcard " + cls);
       const h = el("h3"); h.append(icon(ic, "sm"), document.createTextNode(label));
-      const key = cls === "ask" ? "asks_first" : cls;
+      const key = cls === "ask" ? "asks_first" : cls === "expert" ? "expert_checks" : cls;
       const fresh = new Set(((f.glance_new || {})[key] || []).map(x => String(x).toLowerCase()));
       const ul = el("ul"); items.forEach(t => ul.append(el("li", fresh.has(String(t).toLowerCase()) ? "isnew" : null, t)));
       c.append(h, ul); glance.append(c);
@@ -375,38 +453,43 @@ function render(f) {
     app.append(glance);
   }
 
-  // Flow
+  // Flow: one list of steps, or (workflow agents) a stage map plus one section per stage
+  const stages = Array.isArray(f.stages) && f.stages.length ? f.stages : null;
   const h2 = el("h2", "section"); h2.append(icon("sparkles"), document.createTextNode("How " + (a.name || "your agent") + " will work"));
+  if (stages) h2.append(el("small", null, stages.length + " stages"));
   app.append(h2);
-  const flow = el("div", "flow");
-  const steps = f.steps || [];
-  const usedKinds = new Set();
-  steps.forEach((s, i) => {
-    if (i > 0) { const c = el("div", "connector"); c.append(el("div"), el("div")); flow.append(c); }
-    const row = el("div", "row");
-    const card = el("div", "step " + kindClass(s.kind) + (s.change ? " changed" : ""));
-    usedKinds.add(KINDS[s.kind] ? s.kind : "think");
-    const ic = el("div", "ico"); ic.append(icon(s.icon));
-    const body = el("div");
-    const h4 = el("h4", null, s.title || "");
-    if (s.change === "new" || s.change === "updated") h4.append(el("span", "chg " + s.change, s.change === "new" ? "New" : "Updated"));
-    body.append(el("div", "num", "Step " + (i + 1) + " · " + (KINDS[s.kind] || KINDS.think)), h4);
-    if (s.detail) body.append(el("p", null, s.detail));
-    card.append(ic, body);
-    row.append(card);
-    if (s.branch) {
-      const b = s.branch;
-      const br = el("div", "branch " + kindClass(b.kind || "handoff"));
-      usedKinds.add(KINDS[b.kind] ? b.kind : "handoff");
-      const bi = el("div", "ico"); bi.append(icon(b.icon || "alert"));
-      const bb = el("div"); bb.append(el("div", "when", b.when || "Otherwise"), el("div", "then", b.then || ""));
-      br.append(bi, bb); row.append(br);
-    } else {
-      row.append(el("div"));
-    }
-    flow.append(row);
-  });
-  app.append(flow);
+  if (!stages) {
+    app.append(renderSteps(f.steps || [], ""));
+  } else {
+    const map = el("nav", "stagemap");
+    map.setAttribute("aria-label", "Stages");
+    stages.forEach((st, i) => {
+      if (i > 0) { const ch = el("span", "chev"); ch.append(icon("chevron", "sm")); map.append(ch); }
+      const link = el("a"); link.href = "#stage-" + (i + 1);
+      const sn = el("span", "sn"); sn.append(icon(st.icon || "sparkles", "sm"));
+      link.append(sn, document.createTextNode((i + 1) + " · " + (st.title || "Stage")));
+      const openCount = (st.steps || []).reduce((n, s) => n + ((s.open || []).length), 0);
+      if (openCount) link.append(el("span", "open-count", "❓ " + openCount));
+      map.append(link);
+    });
+    app.append(map);
+    stages.forEach((st, i) => {
+      const sec = el("details", "stage"); sec.open = true; sec.id = "stage-" + (i + 1);
+      const sum = el("summary");
+      const ic = el("div", "ico"); ic.style.cssText = "width:44px;height:44px;border-radius:12px;display:grid;place-items:center;flex:none"; ic.append(icon(st.icon || "sparkles"));
+      const t = el("div"); t.append(el("div", "lbl", "Stage " + (i + 1)), el("h3", null, st.title || ""));
+      if (st.summary) t.append(el("p", null, st.summary));
+      const tog = el("span", "tog"); tog.append(icon("chevron"));
+      sum.append(ic, t, tog); sec.append(sum);
+      sec.append(renderSteps(st.steps || [], (i + 1) + "."));
+      if (st.passes_on) {
+        const ps = el("div", "passes"); ps.append(icon("handoff", "sm"));
+        const pt = el("div"); pt.append(el("b", null, i < stages.length - 1 ? "Passes on to " + (stages[i + 1].title || "the next stage") + ": " : "Keeps on file: "), document.createTextNode(st.passes_on));
+        ps.append(pt); sec.append(ps);
+      }
+      app.append(sec);
+    });
+  }
 
   // Next steps
   const nh = el("h2", "section"); nh.append(icon("rocket"), document.createTextNode("What happens next"));

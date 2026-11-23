@@ -102,7 +102,7 @@
   .verdict.ok { color: var(--output); } .verdict.bad { color: var(--handoff); }
   .seg { display: flex; height: 12px; border-radius: 99px; overflow: hidden; background: var(--bg-accent); }
   .seg span { display: block; height: 100%; }
-  .seg .p { background: var(--output); } .seg .f { background: var(--handoff); } .seg .c { background: var(--muted); opacity: .5; }
+  .seg .p { background: var(--output); } .seg .f { background: var(--handoff); } .seg .c { background: var(--muted); opacity: .5; } .seg .r { background: var(--guard); }
   .legend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 8px; font-size: 13px; color: var(--muted); }
   .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
   .meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
@@ -119,6 +119,8 @@
   .t { background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--k); border-radius: 16px; box-shadow: var(--shadow); }
   .t.pass { --k: var(--output); --k-soft: var(--output-soft); }
   .t.fail { --k: var(--handoff); --k-soft: var(--handoff-soft); }
+  .t.review { --k: var(--guard); --k-soft: var(--guard-soft); }
+  .input ol { margin: 0; padding-left: 20px; } .input li + li { margin-top: 4px; }
   .t.couldnt_run, .t.not_graded { --k: var(--muted); --k-soft: var(--bg-accent); }
   .t > summary, .t > .th { list-style: none; display: flex; align-items: center; gap: 12px; padding: 14px 16px; cursor: pointer; }
   .t > .th { cursor: default; }
@@ -290,15 +292,16 @@ function phrase(text) {
 const V = {
   pass:        {label: "Passed",        icon: "check"},
   fail:        {label: "Failed",        icon: "alert"},
+  review:      {label: "Needs your check", icon: "eye"},
   couldnt_run: {label: "Couldn't run",  icon: "help"},
   not_graded:  {label: "Not graded",    icon: "help"}
 };
-const TYPE = {everyday: "Everyday", tricky: "Tricky", boundary: "Boundary", format: "Format"};
+const TYPE = {everyday: "Everyday", tricky: "Tricky", boundary: "Boundary", format: "Format", scenario: "Whole job"};
 const results = (DATA.results || []).slice().sort((a, b) => order(a) - order(b) || String(a.id).localeCompare(String(b.id), undefined, {numeric: true}));
-function order(r) { return {fail: 0, couldnt_run: 1, not_graded: 2, pass: 3}[r.verdict] ?? 4; }
+function order(r) { return {fail: 0, review: 1, couldnt_run: 2, not_graded: 3, pass: 4}[r.verdict] ?? 5; }
 const agent = DATA.agent || {}, run = DATA.run || {};
 const count = k => results.filter(r => r.verdict === k).length;
-let filter = count("fail") ? "fail" : "all";
+let filter = count("fail") ? "fail" : count("review") ? "review" : "all";
 
 function render() {
   const app = document.getElementById("app"); app.textContent = "";
@@ -317,20 +320,22 @@ function render() {
 
   if (!results.length) { app.append(el("div", "empty", "No test results yet.")); return; }
 
-  const p = count("pass"), f = count("fail"), c = count("couldnt_run") + count("not_graded"), n = results.length;
+  const p = count("pass"), f = count("fail"), rv = count("review"), c = count("couldnt_run") + count("not_graded"), n = results.length;
   const score = el("section", "score"); score.setAttribute("aria-label", "Summary");
   const big = el("div", "big"); big.append(document.createTextNode(p + "/" + n), el("small", null, " passed"));
   const right = el("div");
-  right.append(el("div", "verdict " + (f || c ? "bad" : "ok"), f ? f + (f === 1 ? " test needs" : " tests need") + " a fix." : c ? "Some tests couldn't run." : "Everything passed. Your agent is behaving as expected."));
-  const seg = el("div", "seg"); seg.setAttribute("role", "img"); seg.setAttribute("aria-label", p + " passed, " + f + " failed, " + c + " couldn't run");
-  [["p", p], ["f", f], ["c", c]].forEach(([k, v]) => { if (v) { const s = el("span", k); s.style.width = (100 * v / n) + "%"; seg.append(s); } });
+  right.append(el("div", "verdict " + (f || c || rv ? "bad" : "ok"), f ? f + (f === 1 ? " test needs" : " tests need") + " a fix." :
+      rv ? rv + (rv === 1 ? " answer needs" : " answers need") + " your check: only you can tell if it's right for your business." :
+      c ? "Some tests couldn't run." : "Everything passed. Your agent is behaving as expected."));
+  const seg = el("div", "seg"); seg.setAttribute("role", "img"); seg.setAttribute("aria-label", p + " passed, " + rv + " need your check, " + f + " failed, " + c + " couldn't run");
+  [["p", p], ["r", rv], ["f", f], ["c", c]].forEach(([k, v]) => { if (v) { const s = el("span", k); s.style.width = (100 * v / n) + "%"; seg.append(s); } });
   const lg = el("div", "legend");
-  [["var(--output)", p + " passed"], ["var(--handoff)", f + " failed"], ["var(--muted)", c + " couldn't run"]].forEach(([col, t], i) => {
-    if (i === 2 && !c) return; const s = el("span"); const dot = el("i"); dot.style.background = col; s.append(dot, document.createTextNode(t)); lg.append(s); });
+  [["var(--output)", p + " passed"], ["var(--guard)", rv + " need your check"], ["var(--handoff)", f + " failed"], ["var(--muted)", c + " couldn't run"]].forEach(([col, t], i) => {
+    if ((i === 1 && !rv) || (i === 3 && !c)) return; const s = el("span"); const dot = el("i"); dot.style.background = col; s.append(dot, document.createTextNode(t)); lg.append(s); });
   right.append(seg, lg); score.append(big, right); app.append(score);
 
   const chips = el("div", "chips");
-  [["all", "All (" + n + ")"], ["fail", "Failed (" + f + ")"], ["pass", "Passed (" + p + ")"]].concat(c ? [["couldnt_run", "Couldn't run (" + c + ")"]] : [])
+  [["all", "All (" + n + ")"], ["fail", "Failed (" + f + ")"]].concat(rv ? [["review", "Needs your check (" + rv + ")"]] : [], [["pass", "Passed (" + p + ")"]], c ? [["couldnt_run", "Couldn't run (" + c + ")"]] : [])
     .forEach(([k, l]) => { const b = el("button", "chip", l); b.type = "button"; b.setAttribute("aria-pressed", filter === k ? "true" : "false");
       b.addEventListener("click", () => { filter = k; render(); }); chips.append(b); });
   app.append(chips);
@@ -365,14 +370,17 @@ function testCard(r) {
 
   const body = el("div", "tb");
   const inp = el("div"); inp.append(el("div", "lbl", "What was asked"));
-  const ib = el("div", "input", r.input || ""); inp.append(ib); body.append(inp);
+  const ib = el("div", "input");
+  if (Array.isArray(r.turns) && r.turns.length) { const ol = el("ol"); r.turns.forEach(t => ol.append(el("li", null, t))); ib.append(ol); }
+  else ib.textContent = r.input || "";
+  inp.append(ib); body.append(inp);
 
   const cmp = el("div", "cmp");
   const exp = el("div", "box exp"); exp.append(el("div", "lbl", "What we expected"));
   if (r.expected_output) exp.append(el("div", "quote", r.expected_output));
   if ((r.must_include || []).length) { exp.append(el("div", "sub", "Should:")); const ul = el("ul"); r.must_include.forEach(x => ul.append(el("li", null, x))); exp.append(ul); }
   if ((r.must_not_include || []).length) { exp.append(el("div", "sub", "Should not:")); const ul = el("ul"); r.must_not_include.forEach(x => ul.append(el("li", null, x))); exp.append(ul); }
-  const got = el("div", "box got"); got.append(el("div", "lbl", r.verdict === "pass" ? "What it answered" : "What it actually did"));
+  const got = el("div", "box got"); got.append(el("div", "lbl", r.verdict === "pass" ? "What it answered" : r.verdict === "review" ? "What it answered: is this how you'd do it?" : "What it actually did"));
   got.append(el("div", "quote", r.evidence ? "“" + r.evidence + "”" : (r.answer ? clip(r.answer, 400) : "(no answer)")));
   cmp.append(exp, got); body.append(cmp);
 

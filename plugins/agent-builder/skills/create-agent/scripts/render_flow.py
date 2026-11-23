@@ -8,7 +8,8 @@ With --previous, steps that are new or changed since the old version are
 tagged "New" / "Updated", removed steps are listed, and new "at a glance"
 items are marked, so the user can see that their feedback was applied.
 
-<flow.json> follows the spec in references/flow-preview.md. The page is fully
+<flow.json> follows the spec in references/flow-preview.md (a list of "steps", or
+"stages" for workflow agents). The page is fully
 self-contained (no internet needed) and adapts to light/dark mode and phones.
 Standard library only.
 """
@@ -26,24 +27,43 @@ START, END = "/*FLOW_DATA_START*/", "/*FLOW_DATA_END*/"
 KINDS = {"input", "think", "tool", "guard", "output", "handoff"}
 
 
+def validate_steps(steps, where: str, max_steps: int) -> list[str]:
+    problems = []
+    if not isinstance(steps, list) or not steps:
+        return [f'{where}: "steps" must be a non-empty list']
+    for i, s in enumerate(steps, 1):
+        if not s.get("title"):
+            problems.append(f"{where} step {i}: missing title")
+        if s.get("kind") not in KINDS:
+            problems.append(f"{where} step {i}: kind must be one of {sorted(KINDS)}")
+        b = s.get("branch")
+        if b is not None and (not b.get("when") or not b.get("then")):
+            problems.append(f"{where} step {i}: branch needs both 'when' and 'then'")
+        for key in ("rules", "open"):
+            if key in s and not (isinstance(s[key], list) and all(isinstance(x, str) for x in s[key])):
+                problems.append(f"{where} step {i}: '{key}' must be a list of strings")
+    if len(steps) > max_steps:
+        problems.append(f"{where}: more than {max_steps} steps; merge some so the diagram stays readable")
+    return problems
+
+
 def validate(spec: dict) -> list[str]:
     problems = []
     if not isinstance(spec.get("agent"), dict) or not spec["agent"].get("name"):
         problems.append('"agent.name" is required')
-    steps = spec.get("steps")
-    if not isinstance(steps, list) or not steps:
-        problems.append('"steps" must be a non-empty list')
-        return problems
-    for i, s in enumerate(steps, 1):
-        if not s.get("title"):
-            problems.append(f"step {i}: missing title")
-        if s.get("kind") not in KINDS:
-            problems.append(f"step {i}: kind must be one of {sorted(KINDS)}")
-        b = s.get("branch")
-        if b is not None and (not b.get("when") or not b.get("then")):
-            problems.append(f"step {i}: branch needs both 'when' and 'then'")
-    if len(steps) > 9:
-        problems.append("more than 9 steps; merge some so the diagram stays readable")
+    stages = spec.get("stages")
+    if stages:  # workflow agents: a stage map, each stage with its own steps
+        if not isinstance(stages, list):
+            return problems + ['"stages" must be a list']
+        if len(stages) > 8:
+            problems.append("more than 8 stages; start with the most important ones")
+        for n, st in enumerate(stages, 1):
+            if not isinstance(st, dict) or not st.get("title"):
+                problems.append(f"stage {n}: missing title")
+                continue
+            problems += validate_steps(st.get("steps"), f"stage {n}", 6)
+    else:
+        problems += validate_steps(spec.get("steps"), "flow", 9)
     return problems
 
 
@@ -54,21 +74,32 @@ def _norm(text) -> str:
 def _step_sig(step: dict) -> tuple:
     b = step.get("branch") or {}
     return (step.get("kind"), step.get("icon"), _norm(step.get("detail")),
-            _norm(b.get("when")), _norm(b.get("then")), b.get("kind"), b.get("icon"))
+            _norm(b.get("when")), _norm(b.get("then")), b.get("kind"), b.get("icon"),
+            tuple(_norm(x) for x in step.get("rules") or []), tuple(_norm(x) for x in step.get("open") or []))
+
+
+def _all_steps(spec: dict) -> list[tuple[str, str, dict]]:
+    """(match key, label, step) for every step: the flat list, or every stage's steps for workflow agents."""
+    if spec.get("stages"):
+        return [(_norm(st.get("title")) + "|" + _norm(s.get("title")), f"{st.get('title', '')}: {s.get('title', '')}", s)
+                for st in spec["stages"] if isinstance(st, dict) for s in st.get("steps") or []]
+    return [(_norm(s.get("title")), s.get("title", ""), s) for s in spec.get("steps") or []]
 
 
 def mark_changes(spec: dict, previous: dict) -> int:
-    """Tag what changed since `previous`. Steps are matched by title, then by position. Returns the number of changes."""
-    old_steps = list(previous.get("steps") or [])
-    by_title = {_norm(s.get("title")): s for s in old_steps}
+    """Tag what changed since `previous`. Steps are matched by title (within their stage), then by position.
+    Returns the number of changes."""
+    old_steps = _all_steps(previous)
+    new_steps = _all_steps(spec)
+    by_key = {k: s for k, _, s in old_steps}
+    new_keys = {k for k, _, _ in new_steps}
     matched = set()
     changes = 0
-    for i, step in enumerate(spec.get("steps") or []):
+    for i, (key, _, step) in enumerate(new_steps):
         step.pop("change", None)
-        old = by_title.get(_norm(step.get("title")))
-        if old is None and i < len(old_steps) and id(old_steps[i]) not in matched \
-                and _norm(old_steps[i].get("title")) not in {_norm(x.get("title")) for x in spec["steps"]}:
-            old = old_steps[i]  # same position, renamed
+        old = by_key.get(key)
+        if old is None and i < len(old_steps) and id(old_steps[i][2]) not in matched and old_steps[i][0] not in new_keys:
+            old = old_steps[i][2]  # same position, renamed
         if old is None:
             step["change"] = "new"
             changes += 1
@@ -77,11 +108,11 @@ def mark_changes(spec: dict, previous: dict) -> int:
         if _step_sig(old) != _step_sig(step) or _norm(old.get("title")) != _norm(step.get("title")):
             step["change"] = "updated"
             changes += 1
-    removed = [s.get("title", "") for s in old_steps if id(s) not in matched]
+    removed = [label for _, label, s in old_steps if id(s) not in matched]
     spec["removed_steps"] = removed
     changes += len(removed)
     glance_new = {}
-    for key in ("can", "wont", "asks_first"):
+    for key in ("can", "wont", "asks_first", "expert_checks"):
         before = {_norm(x) for x in (previous.get("glance") or {}).get(key, []) or []}
         new_items = [x for x in (spec.get("glance") or {}).get(key, []) or [] if _norm(x) not in before]
         if new_items:

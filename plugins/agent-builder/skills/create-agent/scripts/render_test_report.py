@@ -25,8 +25,8 @@ from pathlib import Path
 
 TEMPLATE = Path(__file__).resolve().parent.parent / "assets" / "test-report-template.html"
 START, END = "/*REPORT_DATA_START*/", "/*REPORT_DATA_END*/"
-VERDICTS = {"pass", "fail", "couldnt_run", "not_graded"}
-CASE_FIELDS = ("name", "type", "source", "input", "expected_output", "must_include", "must_not_include", "notes")
+VERDICTS = {"pass", "review", "fail", "couldnt_run", "not_graded"}
+CASE_FIELDS = ("name", "type", "source", "input", "turns", "expected_output", "must_include", "must_not_include", "notes", "expert_check")
 
 
 def merge_cases(data: dict, cases_path: Path) -> None:
@@ -52,8 +52,8 @@ def validate(data: dict) -> list[str]:
     for i, r in enumerate(data["results"], 1):
         if r.get("verdict") not in VERDICTS:
             problems.append(f"result {i} ({r.get('id', '?')}): verdict must be one of {sorted(VERDICTS)}")
-        if not r.get("input"):
-            problems.append(f"result {i} ({r.get('id', '?')}): no input (add it, or pass --cases with the matching test)")
+        if not r.get("input") and not r.get("turns"):
+            problems.append(f"result {i} ({r.get('id', '?')}): no input or turns (add them, or pass --cases with the matching test)")
     return problems
 
 
@@ -83,7 +83,8 @@ def main() -> None:
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(html[:a] + payload + html[b:], encoding="utf-8")
     counts = {v: sum(1 for r in data["results"] if r["verdict"] == v) for v in VERDICTS}
-    print(f"Test report written to {out.resolve()}  ({counts['pass']} passed, {counts['fail']} failed, "
+    review = f"{counts['review']} need your check, " if counts["review"] else ""
+    print(f"Test report written to {out.resolve()}  ({counts['pass']} passed, {review}{counts['fail']} failed, "
           f"{counts['couldnt_run'] + counts['not_graded']} couldn't run or not graded)")
     if args.open:
         webbrowser.open(out.resolve().as_uri())
