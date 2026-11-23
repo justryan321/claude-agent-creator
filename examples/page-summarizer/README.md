@@ -45,6 +45,8 @@ Asks first:   Nothing (it's read-only)
 Answers as:   Title line → 3–5 sentence summary → 5–10 key-item bullets → "Worth noting"
 Lives in:     Claude Code subagent
 ```
+Next comes the **Flow Preview**, a diagram of how the agent will work. In Claude Code it opens in your browser; on claude.ai it appears as an artifact. You can open the finished one for this example, [`agent-flow.html`](agent-flow.html), in any browser. Its source is [`flow.json`](flow.json).
+
 Reply **"looks good"**.
 
 ### 4. Test drive

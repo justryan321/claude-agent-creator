@@ -12,8 +12,11 @@ Agent Creator is a Claude plugin. Once it's installed, run one command and Claud
 
    Claude asks only about the gaps.
 2. **Agent Card:** review a one-screen summary of your agent's job, tone, abilities, and boundaries.
-3. **Test drive:** chat with your agent right away and give feedback until it behaves the way you want.
-4. **Easy setup:** in Claude Code, the builder can **install the agent for you**. On claude.ai, you get one copy-ready block and click-by-click steps. Every agent comes with an `agent-brief.md` save file, so you can come back and say *"update my agent"* anytime.
+3. **Flow Preview:** before anything is built, see a visual diagram with icons of how your agent will handle a request, what it does when something goes wrong, and what happens next. Approve it or ask for changes.
+4. **Test drive:** chat with your agent right away and give feedback until it behaves the way you want.
+5. **Easy setup:** in Claude Code, the builder can **install the agent for you**. On claude.ai, you get one copy-ready block and click-by-click steps. Every agent comes with an `agent-brief.md` save file, so you can come back and say *"update my agent"* anytime.
+
+<p align="center"><img src="docs/flow-preview.png" alt="Example Flow Preview diagram for a Page Summarizer agent" width="720"></p>
 
 ### Reusing an existing chat
 
@@ -77,16 +80,20 @@ Customer Support Helper · Research Assistant · Writing Coach & Editor · Meeti
 plugins/agent-builder/
 ├── .claude-plugin/plugin.json           # plugin manifest
 └── skills/create-agent/
-    ├── SKILL.md                         # the builder's flow (interview → card → test drive → files)
+    ├── SKILL.md                         # the builder's flow (interview → card → flow preview → test drive → files)
     ├── references/
     │   ├── bring-your-own-context.md    # importing chats, files, old instructions, exports
     │   ├── templates.md                 # starter agent templates
     │   ├── interview-guide.md           # question wording and ability → tool mapping
     │   ├── writing-instructions.md      # how the agent's instructions are written
     │   ├── output-formats.md            # file formats, install locations, agent-brief.md
+    │   ├── flow-preview.md              # the visual flow diagram step
     │   └── glossary.md                  # plain-language explanations of technical terms
+    ├── assets/
+    │   └── flow-template.html           # the Flow Preview diagram template
     └── scripts/
-        └── extract_conversations.py     # reads Claude/ChatGPT exports and Claude Code sessions
+        ├── extract_conversations.py     # reads Claude/ChatGPT exports and Claude Code sessions
+        └── render_flow.py               # renders the Flow Preview to an HTML page
 ```
 
 ## Contributing
