@@ -28,6 +28,8 @@ Options: **General knowledge is enough** · **My own documents (FAQ, policies, n
   - Standalone app → a `knowledge/` folder next to the program.
 - Short, stable facts (opening hours, contact email) can go straight into the instructions. Put them there.
 
+- **Workflow-mode agents:** split knowledge into rules (→ `playbook.md`), reference facts, and changing data such as prices or rates (→ dated files). Ask how often each changing item goes out of date and who updates it. See `workflow-mode.md` section 5.
+
 ## 6. Abilities
 Ask as a multi-select in plain words, then map each to settings using the table below.
 
@@ -44,11 +46,24 @@ Notes:
 - On a **Claude.ai Project**, abilities come from claude.ai's own settings (web search toggle, connectors). List what to turn on in `HOW-TO-USE.md` instead of tool names.
 - For app connections, explain in plain words: "an app connector (called an MCP server) is a plug that lets the agent use another app." Include the official connector setup steps for their app in `HOW-TO-USE.md` when you know them. Otherwise tell them where to look (the app's or Claude's connector directory) rather than inventing a URL or package name.
 
+## 6b. How it decides (workflow mode only)
+Skip for single-job agents. For workflow agents, follow `workflow-mode.md` sections 3–4: map the stages, then walk through one real job stage by stage, asking what they look at, their rule of thumb, exceptions, red flags, and when they'd call someone. Then ask about one job that went wrong. Play back each stage's rules ("When → Do → Why") before moving on.
+
+Useful follow-ups when answers are vague:
+
+| User says | Ask |
+|---|---|
+| "It depends" | "On what? What's the first thing you'd look at?" |
+| "I just know" | "Tell me about the last time you decided that. What tipped it?" |
+| "Usually about 10%" | "When is it more, and when is it less?" |
+| "I'd figure it out" | "Should the agent figure it out, or check with you?" |
+
 ## 7. Boundaries
 - "Is there anything it should **never** do or talk about?"
 - "Is there anything it should **ask you before** doing?" (sending, deleting, buying, publishing, editing files)
 - "When it can't help, what should it say or where should it send people?"
 - If they have no ideas, propose 3 sensible ones for this agent type and let them accept or edit.
+- **Workflow mode:** also ask which judgment calls must always come back to them or a professional (**expert checks**, `workflow-mode.md` section 6).
 
 ## 8. Output style
 Options: **Bullet points** · **Short paragraphs** · **Step-by-step instructions** · **Tables** · **Ready-to-send emails/messages**
@@ -68,4 +83,4 @@ Offer 2–3 names: one descriptive ("Bakery Help Desk"), one friendly ("Penny"),
 | "Friendly but not cheesy" | Warm, plain language, no exclamation-mark spam, no emoji unless the user uses them |
 | "It should know everything about my business" | Ask for the 3–5 most important documents to start with |
 | "Do whatever it takes" | Push back gently: pick specific abilities, and require confirmation for irreversible actions |
-| "I don't know" | Choose the template default, state it in one line, move on |
+| "I don't know" | Choose the template default, state it in one line, move on. **Except business rules** (prices, thresholds, policies, legal or safety calls): mark ❓ needs your answer, and the agent will ask instead of guessing |

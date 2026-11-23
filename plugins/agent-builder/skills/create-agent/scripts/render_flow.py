@@ -4,7 +4,8 @@
 Usage:
   render_flow.py <flow.json> <output.html> [--open]
 
-<flow.json> follows the spec in references/flow-preview.md. The page is fully
+<flow.json> follows the spec in references/flow-preview.md (a list of "steps", or
+"stages" for workflow agents). The page is fully
 self-contained (no internet needed) and adapts to light/dark mode and phones.
 Standard library only.
 """
@@ -22,24 +23,43 @@ START, END = "/*FLOW_DATA_START*/", "/*FLOW_DATA_END*/"
 KINDS = {"input", "think", "tool", "guard", "output", "handoff"}
 
 
+def validate_steps(steps, where: str, max_steps: int) -> list[str]:
+    problems = []
+    if not isinstance(steps, list) or not steps:
+        return [f'{where}: "steps" must be a non-empty list']
+    for i, s in enumerate(steps, 1):
+        if not s.get("title"):
+            problems.append(f"{where} step {i}: missing title")
+        if s.get("kind") not in KINDS:
+            problems.append(f"{where} step {i}: kind must be one of {sorted(KINDS)}")
+        b = s.get("branch")
+        if b is not None and (not b.get("when") or not b.get("then")):
+            problems.append(f"{where} step {i}: branch needs both 'when' and 'then'")
+        for key in ("rules", "open"):
+            if key in s and not (isinstance(s[key], list) and all(isinstance(x, str) for x in s[key])):
+                problems.append(f"{where} step {i}: '{key}' must be a list of strings")
+    if len(steps) > max_steps:
+        problems.append(f"{where}: more than {max_steps} steps; merge some so the diagram stays readable")
+    return problems
+
+
 def validate(spec: dict) -> list[str]:
     problems = []
     if not isinstance(spec.get("agent"), dict) or not spec["agent"].get("name"):
         problems.append('"agent.name" is required')
-    steps = spec.get("steps")
-    if not isinstance(steps, list) or not steps:
-        problems.append('"steps" must be a non-empty list')
-        return problems
-    for i, s in enumerate(steps, 1):
-        if not s.get("title"):
-            problems.append(f"step {i}: missing title")
-        if s.get("kind") not in KINDS:
-            problems.append(f"step {i}: kind must be one of {sorted(KINDS)}")
-        b = s.get("branch")
-        if b is not None and (not b.get("when") or not b.get("then")):
-            problems.append(f"step {i}: branch needs both 'when' and 'then'")
-    if len(steps) > 9:
-        problems.append("more than 9 steps; merge some so the diagram stays readable")
+    stages = spec.get("stages")
+    if stages:  # workflow agents: a stage map, each stage with its own steps
+        if not isinstance(stages, list):
+            return problems + ['"stages" must be a list']
+        if len(stages) > 8:
+            problems.append("more than 8 stages; start with the most important ones")
+        for n, st in enumerate(stages, 1):
+            if not isinstance(st, dict) or not st.get("title"):
+                problems.append(f"stage {n}: missing title")
+                continue
+            problems += validate_steps(st.get("steps"), f"stage {n}", 6)
+    else:
+        problems += validate_steps(spec.get("steps"), "flow", 9)
     return problems
 
 

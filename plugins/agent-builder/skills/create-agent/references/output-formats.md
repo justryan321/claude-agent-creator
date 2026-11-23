@@ -58,6 +58,39 @@ _Created with the Claude Agent Builder on <date>. To change this agent, run the 
 <INSTRUCTIONS>
 ```
 
+For workflow-mode agents, add `## Stages`, `## Playbook` (the full `playbook.md` content), `## Still needs your answer` (❓ items), and `## Later ideas` (stages left for later) to the brief, so an update never loses the rules.
+
+## Workflow agents (extra files)
+
+For agents built in workflow mode (`workflow-mode.md`), add to the `<agent-id>/` folder:
+
+```
+<agent-id>/
+├── playbook.md            # the decision rules, one section per stage (source of truth, user-editable)
+├── knowledge/
+│   ├── price-sheet.md     # changing data: one file each, "Last updated: <date>" on line 1
+│   └── ...
+└── jobs/                  # only if the agent remembers jobs (Claude Code / standalone app)
+    └── README.md          # "One file per job. The agent creates and updates these."
+```
+
+**The playbook always travels with the instructions.** Rules the agent only *might* look up get skipped, so:
+
+| Destination | Where the playbook goes |
+|---|---|
+| Claude.ai Project | Appended to `project-instructions.md` under `## Playbook`, so it's in the same paste. Changing data goes to Project knowledge. |
+| Subagent | Appended to the body of `<agent-id>.md` under `## Playbook`. |
+| Skill | `skill/<agent-id>/playbook.md` next to `SKILL.md`, which says "Read `playbook.md` before starting any stage." |
+| Standalone app | `playbook.md` next to `instructions.md`. `agent.py` loads both. |
+
+Keep `playbook.md` as the editable source either way. When the user edits it, rebuild the destination files from it (on "update my agent").
+
+**Job memory** (if chosen): the instructions say where job files live (`jobs/` next to the agent, or `~/.claude/agents/knowledge/<agent-id>/jobs/` for an installed subagent), to read a job's file before working on it, and to update it at the end of each stage with status, stage, key facts, decisions, and open items. The agent needs `Read`, `Write`, `Edit` (and `Glob` to find jobs); creating or updating job files can be auto-approved, but deleting them can't. On a Claude.ai Project, instead tell the agent to end every stage with a **Job summary** block, and explain in HOW-TO-USE.md: "Use one chat per job. Paste the last Job summary at the start of the next chat, or add it to Project knowledge."
+
+**A team of agents** (only if chosen, Claude Code): one subagent per stage (`<agent-id>-<stage>.md`), each with the core instructions, its own playbook section, and the hand-off rules, plus a coordinator `<agent-id>.md` with the stage map and hand-off rules whose description says to hand each stage to its specialist. Register the coordinator in My Agents with the specialists listed in `notes`.
+
+**HOW-TO-USE.md additions:** a "Keeping it current" section (which changing-data files to update, how often, and that the agent warns when they're stale), a "Your playbook" section ("Edit `playbook.md` in any text editor when your rules change, then run the Agent Builder and say *update my agent*. To answer the ❓ items, say *fill in my agent's questions*."), and the job-memory steps if used.
+
 ## "Install it for me" (Claude Code only)
 
 When the user picks install, write the agent directly to its live location instead of (or in addition to) `./<agent-id>/`, after checking that nothing with that name exists there:
@@ -241,6 +274,9 @@ load_dotenv(HERE / ".env")
 
 AGENT_NAME = "<Display Name>"
 INSTRUCTIONS = (HERE / "instructions.md").read_text(encoding="utf-8")
+# Workflow agents: the playbook always travels with the instructions.
+if (HERE / "playbook.md").exists():
+    INSTRUCTIONS += "\n\n" + (HERE / "playbook.md").read_text(encoding="utf-8")
 
 # Built-in tools this agent may use at all (empty list = chat only).
 TOOLS = [<e.g. "Read", "Glob", "Grep", "WebSearch", "WebFetch", "Write", "Edit">]
@@ -392,3 +428,4 @@ Your agent's behavior lives in its instructions (<file name>). Edit that text in
 - [ ] `tests/test-cases.json` exists (6–8 generated cases plus any from the user), and the latest results are in `tests/test-report.md`.
 - [ ] The Flow Preview was approved, and `agent-flow.html` (if files are possible) matches the final design.
 - [ ] If installed: the file is in the right folder and you told the user the exact first thing to type.
+- [ ] Workflow agents: `playbook.md` is included and also travels with the instructions for each destination; no business rule was invented (unknowns are ❓); every changing-data file has a "Last updated" date; expert checks appear in the instructions, playbook, and tests; `agent-brief.draft.md` is replaced by the final brief.

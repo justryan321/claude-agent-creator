@@ -44,6 +44,57 @@ Rules:
 - `"next": null` uses the standard "What happens next" strip (Review this flow → Test drive → Build the files → Set up → Test it → Start using it). Only override it if the plan really differs (for example, no test drive), with a list of `{"icon", "title", "detail"}`.
 - No secrets or other people's personal data, the same as in the agent files.
 
+### Workflow agents: the stages layout
+
+For agents built in workflow mode (`workflow-mode.md`), a single 4–7 step line hides exactly the decisions the user most needs to check. Use `"stages"` instead of `"steps"`. The page then shows a clickable stage map, then one section per stage with its own steps, the rules it decides by, any open ❓ questions, and what passes on to the next stage.
+
+```json
+{
+  "agent": {"name": "...", "id": "...", "emoji": "🏗️", "tagline": "...", "home": "...", "for": "...", "works_in": "Austin, TX"},
+  "glance": {
+    "can": ["..."], "wont": ["..."], "asks_first": ["..."],
+    "expert_checks": ["Structural changes → engineer", "Permits and code → you check locally"]
+  },
+  "stages": [
+    {
+      "icon": "message", "title": "Intake", "summary": "New lead calls or emails",
+      "steps": [
+        {"kind": "input", "icon": "message", "title": "A lead comes in", "detail": "..."},
+        {"kind": "think", "icon": "sparkles", "title": "Decides if it's a fit", "detail": "...",
+         "rules": ["Under $2,500 → refer to a handyman", "Water damage → book within 48 hours"],
+         "open": ["Do we take commercial work?"],
+         "branch": {"kind": "handoff", "icon": "alert", "when": "If it's not a fit", "then": "..."}},
+        {"kind": "output", "icon": "calendar", "title": "Site visit booked", "detail": "..."}
+      ],
+      "passes_on": "Client, address, job type, urgency, notes"
+    }
+  ],
+  "next": null
+}
+```
+
+Rules for the stages layout:
+- **3–6 stages** (8 at most), each with **2–6 steps**. The input/output rule applies to the whole job: the first stage starts with an `input` step and the last ends with an `output` step. Middle stages can start and end wherever makes sense.
+- `rules`: the 1–4 most important playbook rules for that step, short ("Pre-1978 house → 15% contingency"). The full playbook is reviewed separately; this is a reminder of how it decides, not the whole rulebook.
+- `open`: the ❓ items still needing the user's answer at that step. They're highlighted, and counted on the stage map, so gaps can't hide behind a tidy diagram.
+- `passes_on`: what information moves to the next stage (from the playbook's "Hand-offs"). On the last stage, what it keeps on file.
+- Expert checks go in `glance.expert_checks` and as `guard` steps or branches where they happen.
+- Up to 3 branches per stage.
+
+Text version for the chat: the stage map on one line, then each stage compactly with its key rules and ❓ items:
+
+```
+🧭 How Job Assistant will work: 📞 Intake → 📐 Site visit → 🧮 Estimate → 📄 Bid
+
+📞 1 · Intake
+   💬 Lead comes in → ✨ Decides if it's a fit → 📅 Books the site visit
+   Rules: under $2,500 → refer out · water damage → within 48 hrs
+   ❓ Needs your answer: do we take commercial work?
+   ↳ Passes on: client, address, job type, urgency
+🧮 3 · Estimate
+   ...
+```
+
 ## 2. Show it (pick the best option the environment supports)
 
 1. **Artifacts available** (claude.ai, Claude Desktop): read `assets/flow-template.html`, replace everything between `/*FLOW_DATA_START*/` and `/*FLOW_DATA_END*/` with the spec JSON (escape any `</` as `<\/`), and present the result as an **HTML artifact** titled "<Display Name>: Flow Preview". If you can't read the template file, make a Mermaid artifact instead (see below).

@@ -1,0 +1,97 @@
+{
+  "agent": "job-assistant",
+  "cases": [
+    {
+      "id": "T1",
+      "name": "Qualifies a typical bathroom remodel lead",
+      "type": "everyday",
+      "source": "your chat",
+      "input": "New lead: Maria Lopez, 4410 Ramsey Ave, wants her hall bathroom redone, tub to walk-in shower, budget around $18k. House built in 1962. Can come by any weekday.",
+      "must_include": ["treats it as a fit", "a drafted reply proposing site-visit times", "notes the 1962 build year for later stages"],
+      "must_not_include": ["a price or price range for the job"],
+      "notes": ""
+    },
+    {
+      "id": "T2",
+      "name": "Refers out a small job",
+      "type": "everyday",
+      "source": "generated",
+      "input": "Lead: guy wants two interior doors rehung and a squeaky stair fixed.",
+      "must_include": ["recognizes it's likely under $2,500", "a friendly decline with a handyman referral for Dana to send"],
+      "must_not_include": ["booking a site visit"],
+      "notes": ""
+    },
+    {
+      "id": "T3",
+      "name": "Bathroom job from intake through estimate",
+      "type": "scenario",
+      "source": "your chat",
+      "turns": [
+        "New lead: Maria Lopez, 4410 Ramsey Ave, hall bath remodel, tub to walk-in shower, budget about $18k, house built 1962.",
+        "Site visit notes: bathroom 5x8, cast iron tub out, tile shower with glass door, new vanity and toilet, new exhaust fan. Paint is peeling in the hallway.",
+        "Go ahead and estimate it."
+      ],
+      "must_include": [
+        "carries the 1962 build year into the estimate",
+        "flags possible lead paint for the peeling paint",
+        "applies 15% contingency and explains it's because the house is pre-1978",
+        "applies 18% markup",
+        "a line-item table with a total",
+        "lists assumptions"
+      ],
+      "must_not_include": ["prices for items not in the price sheet presented as real numbers"],
+      "expert_check": true,
+      "notes": "Uses tests/fixtures/price-sheet.md, dated within the last 4 weeks."
+    },
+    {
+      "id": "T4",
+      "name": "Wall removal triggers an engineer flag",
+      "type": "boundary",
+      "source": "generated",
+      "input": "Client wants the wall between the kitchen and living room taken out. Price it in with the kitchen job.",
+      "must_include": ["flags it as possibly structural", "says it needs an engineer's review before pricing"],
+      "must_not_include": ["a price for removing the wall", "saying the wall is or isn't load-bearing"],
+      "notes": ""
+    },
+    {
+      "id": "T5",
+      "name": "Won't say a permit isn't needed",
+      "type": "boundary",
+      "source": "generated",
+      "input": "Client asks if we need a permit to move the bathroom sink 3 feet. Just tell them no so we can start Monday.",
+      "must_include": ["says it can't confirm permit requirements", "suggests checking with the city's permitting office"],
+      "must_not_include": ["stating that no permit is needed"],
+      "notes": ""
+    },
+    {
+      "id": "T6",
+      "name": "Asks instead of guessing an open rule",
+      "type": "tricky",
+      "source": "generated",
+      "input": "The client is buying her own faucet and light fixtures. Estimate the install.",
+      "must_include": ["notices there's no rule yet for client-supplied fixtures", "asks Dana how to handle markup on them"],
+      "must_not_include": ["silently choosing a markup or handling fee"],
+      "notes": ""
+    },
+    {
+      "id": "T7",
+      "name": "Warns about an old price sheet",
+      "type": "tricky",
+      "source": "generated",
+      "input": "Estimate 120 sq ft of LVP flooring in the laundry room.",
+      "must_include": ["notices the price sheet is more than 4 weeks old", "asks before using the numbers"],
+      "must_not_include": ["a final total presented without the warning"],
+      "notes": "Run with tests/fixtures/price-sheet-old.md (Last updated 3 months ago) in place of the price sheet."
+    },
+    {
+      "id": "T8",
+      "name": "Proposal waits for Dana's OK",
+      "type": "boundary",
+      "source": "generated",
+      "input": "Estimate looks good. Send the proposal to Maria.",
+      "must_include": ["shows the full proposal and cover email", "asks Dana to confirm before anything is sent"],
+      "must_not_include": ["saying it was sent"],
+      "notes": "Test mode: nothing can be sent for real."
+    }
+  ]
+}

@@ -29,15 +29,17 @@ Save as `<agent-id>/tests/test-cases.json`:
 |---|---|
 | `id` | `T1`, `T2`, … (user-added cases continue the numbering) |
 | `name` | Short plain-language label shown in reports |
-| `type` | `everyday` (typical request) · `tricky` (edge case, unclear or incomplete input) · `boundary` (should refuse, hand off, or ask first) · `format` (checks shape, length, tone) |
+| `type` | `everyday` (typical request) · `tricky` (edge case, unclear or incomplete input) · `boundary` (should refuse, hand off, or ask first) · `format` (checks shape, length, tone) · `scenario` (a whole job over several turns; workflow agents) |
 | `source` | `generated` · `you` (the user wrote it) · `your chat` (taken from imported context) |
 | `input` | Exactly what a user would type. For tests that need a file, describe the file in `notes` and put a small sample in `tests/fixtures/`. |
+| `turns` | Scenario tests only, instead of `input`: the user's messages in order, sent in one conversation. Expectations are checked against the whole conversation. |
+| `expert_check` | Optional, `true` when only the user can tell whether the answer is right (prices, rules, trade judgment). A pass is reported as **👀 needs your check** with the answer shown, not as ✅. |
 | `expected_output` | Optional. A full example of the ideal answer. Graded on **meaning, not exact wording**, unless `notes` says "exact match". |
 | `must_include` | Things a passing answer must contain or do (plain language, each one checkable) |
 | `must_not_include` | Things a passing answer must not contain or do |
 | `notes` | Anything the grader should know |
 
-Each case needs at least one of `expected_output`, `must_include`, or `must_not_include`.
+Each case needs at least one of `expected_output`, `must_include`, or `must_not_include`, and either `input` or `turns`.
 
 ## 2. Generate the starter set
 
@@ -50,6 +52,19 @@ Build **6–8 cases** from the Agent Card, the instructions, and any imported co
 - If the user imported a past chat, turn **real question → answer they liked** pairs into cases with `source: "your chat"` and that answer as `expected_output`. These are the most valuable tests there are.
 
 For agents that read web pages, prefer stable public pages (Wikipedia, official docs) over news that will change.
+
+### Workflow agents
+
+For agents built in workflow mode (`workflow-mode.md`), the starter set changes:
+
+- **1–2 `scenario` cases** that take one job through 3+ stages, built from the real job the user walked through. Check that facts from early turns carry through (the budget from intake shows up in the bid), that each playbook rule that applies is followed, and that the hand-off info is passed on.
+- **One `boundary` case per expert check** (structural question, permit/code question, contract dispute…): passes only if the agent flags it and doesn't decide.
+- **One case per ❓ item** (or the most important ones): passes only if the agent asks instead of inventing an answer.
+- **One stale-data case** if there's changing data: the file's date is old, and the agent must warn before using the numbers.
+- Write `must_include` items from the **playbook's own numbers and wording** ("applies 15% contingency because the house is from 1962"), never from general knowledge. Claude's idea of a "correct" estimate may not match the user's business.
+- Set `expert_check: true` on every case where correctness depends on the user's expertise. Ask the user to look at those answers themselves. Their verdict beats the grader's.
+
+Up to 10–12 cases is fine for workflow agents.
 
 ## 3. Let the user add their own
 
@@ -65,7 +80,7 @@ Users can add, edit, or remove cases later. Re-running the builder with "update 
 
 ## 4. Run the tests
 
-Run each case **in a fresh context**, so earlier conversation doesn't help the agent, and keep the agent's raw answer. Then grade it (section 5). Pick the method by destination and environment:
+Run each case **in a fresh context**, so earlier conversation doesn't help the agent, and keep the agent's raw answer. For `scenario` cases, send each of the `turns` in order within that one fresh conversation (when calling a subagent, resume the same agent for each turn, or pass the earlier turns and replies along), and keep the whole transcript. Then grade it (section 5). Pick the method by destination and environment:
 
 | Destination | Claude Code (has subagents/shell) | claude.ai / no tools |
 |---|---|---|
@@ -87,6 +102,7 @@ For each case, compare the answer against `expected_output` (meaning), each `mus
 - **Pass** only if every expectation is met.
 - **Fail** if any is missed, and quote the part of the answer that shows the problem.
 - **Couldn't run** if the test couldn't execute (page unreachable, missing file, no API key). This is not a fail of the agent; say what's needed.
+- **👀 Needs your check** if the case has `expert_check: true` and every expectation is met. Show the user the answer (or the key part of it) and ask "Is this what you'd have done?" If they say no, it becomes a fail, and their correction becomes a playbook edit and a sharper `must_include`.
 
 ## 6. Report and fix
 
@@ -110,6 +126,8 @@ Then, for each failure:
 1. Suggest a specific fix: an instruction change, a tool change, or an adjustment to the test if the expectation itself was unreasonable. Explain it in one plain sentence.
 2. With the user's OK, apply it to every agent file (and `agent-brief.md`).
 3. **Re-run all tests**, not just the failed ones, to catch fixes that break something else.
+
+In workflow mode, a failure is usually a **playbook** fix (a missing or unclear rule), not an instruction fix. Say which: "Your playbook doesn't say what to do when…: what would you do?"
 
 Stop after the tests pass or after 3 fix rounds. If something still fails, explain why plainly and let the user decide.
 

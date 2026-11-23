@@ -22,5 +22,10 @@ Use these explanations the first time a term comes up or whenever the user asks 
 | **`.env` file** | A small private settings file where your API key is stored so the program can find it. |
 | **Folder paths** (`~/.claude/agents/`) | Where a file lives on your computer. `~` means your home folder. |
 | **Data export** | A download of all your past Claude chats that you can request in Settings. Useful for reusing old conversations. |
+| **Workflow mode** | A more thorough way of building an agent that has to make decisions the way you would at several steps of a job. We walk through a real job together to capture your rules. |
+| **Playbook** | Your agent's rulebook: for each step of a job, what you look at, your rules of thumb, the exceptions, and when to call someone. Edit it anytime when your rules change. |
+| **❓ Needs your answer** | A rule only you can decide (like a price or a policy). Until you fill it in, the agent asks you instead of guessing. |
+| **Expert check** | A call the agent always flags for you or a professional (like structural or legal questions) instead of deciding itself. |
+| **Scenario test** | A test that takes a whole job through several steps in one conversation, to check the agent carries the details through correctly. |
 | **My Agents** | Your list of every agent you've built with the builder: what each does, where it lives, and how its tests went. Say *my agents* to see it. |
 | **Model** | Which Claude "brain" the agent uses. Bigger models are smarter, smaller ones are faster and cheaper. The default is fine for most people. |
