@@ -2,44 +2,165 @@
   "schema": 1,
   "agents": [
     {
-      "id": "page-summarizer", "name": "Page Summarizer", "emoji": "📄",
+      "id": "page-summarizer",
+      "name": "Page Summarizer",
+      "emoji": "📄",
       "tagline": "Reviews a web page, summarizes it, and lists the important key items.",
-      "for": "Just me", "abilities": ["Read web pages", "Read files", "Web search"],
-      "destinations": [{"type": "subagent", "location": "~/.claude/agents/page-summarizer.md"}],
+      "for": "Just me",
+      "abilities": [
+        "Read web pages",
+        "Read files",
+        "Web search"
+      ],
+      "destinations": [
+        {
+          "type": "subagent",
+          "location": "~/.claude/agents/page-summarizer.md"
+        }
+      ],
       "brief_path": "~/agents/page-summarizer/agent-brief.md",
-      "tests": {"passed": 7, "total": 7, "last_run": "2026-11-23T08:40", "method": "live"},
-      "tags": ["work", "research"], "notes": "Great for long policy pages before meetings.",
-      "status": "active", "created": "2026-11-20T10:00", "updated": "2026-11-23T08:40", "version": 2
+      "tests": {
+        "passed": 7,
+        "total": 7,
+        "last_run": "2026-11-23T08:40",
+        "method": "live"
+      },
+      "tags": [
+        "work",
+        "research"
+      ],
+      "notes": "Great for long policy pages before meetings.",
+      "status": "active",
+      "created": "2026-11-20T10:00",
+      "updated": "2026-11-23T08:40",
+      "version": 2,
+      "scope": "personal"
     },
     {
-      "id": "bakery-help-desk", "name": "Bakery Help Desk", "emoji": "🥐",
+      "id": "api-code-reviewer",
+      "name": "API Code Reviewer",
+      "emoji": "🧑‍💻",
+      "tagline": "Reviews changes to the API code for bugs, security issues, and readability.",
+      "for": "My team",
+      "abilities": [
+        "Read and search code"
+      ],
+      "scope": "project",
+      "project": "~/projects/acme-api",
+      "destinations": [
+        {
+          "type": "subagent",
+          "location": "~/projects/acme-api/.claude/agents/api-code-reviewer.md"
+        }
+      ],
+      "brief_path": "~/projects/acme-api/agents/api-code-reviewer/agent-brief.md",
+      "tests": {
+        "passed": 8,
+        "total": 8,
+        "last_run": "2026-11-22T11:20",
+        "method": "live"
+      },
+      "tags": [
+        "work"
+      ],
+      "notes": "",
+      "status": "active",
+      "created": "2026-11-19T15:00",
+      "updated": "2026-11-22T11:20",
+      "version": 2
+    },
+    {
+      "id": "bakery-help-desk",
+      "name": "Bakery Help Desk",
+      "emoji": "🥐",
       "tagline": "Answers customer questions about orders, opening hours, and allergens.",
-      "for": "Customers", "abilities": ["Knowledge: FAQ & menu"],
-      "destinations": [{"type": "claude-ai-project", "location": "claude.ai Project: Bakery Help Desk"}],
+      "for": "Customers",
+      "abilities": [
+        "Knowledge: FAQ & menu"
+      ],
+      "destinations": [
+        {
+          "type": "claude-ai-project",
+          "location": "claude.ai Project: Bakery Help Desk"
+        }
+      ],
       "brief_path": "~/agents/bakery-help-desk/agent-brief.md",
-      "tests": {"passed": 5, "total": 7, "last_run": "2026-11-22T16:10", "method": "simulated"},
-      "tags": ["business"], "notes": "Fails on gluten-free questions: needs the new allergen sheet.",
-      "status": "active", "created": "2026-11-18T09:30", "updated": "2026-11-22T16:10", "version": 3
+      "tests": {
+        "passed": 5,
+        "total": 7,
+        "last_run": "2026-11-22T16:10",
+        "method": "simulated"
+      },
+      "tags": [
+        "business"
+      ],
+      "notes": "Fails on gluten-free questions: needs the new allergen sheet.",
+      "status": "active",
+      "created": "2026-11-18T09:30",
+      "updated": "2026-11-22T16:10",
+      "version": 3,
+      "scope": "personal"
     },
     {
-      "id": "meeting-notes-helper", "name": "Meeting Notes Helper", "emoji": "📝",
+      "id": "meeting-notes-helper",
+      "name": "Meeting Notes Helper",
+      "emoji": "📝",
       "tagline": "Turns meeting notes into a summary, decisions, and an action-item table.",
-      "for": "My team", "abilities": ["Read files"],
-      "destinations": [{"type": "skill", "location": "~/.claude/skills/meeting-notes-helper/SKILL.md"},
-                       {"type": "skill", "location": "Uploaded to claude.ai (Settings → Skills)"}],
-      "brief_path": "~/agents/meeting-notes-helper/agent-brief.md",
-      "tests": null, "tags": ["work"], "notes": "",
-      "status": "active", "created": "2026-11-21T14:00", "updated": "2026-11-21T14:05", "version": 1
+      "for": "My team",
+      "abilities": [
+        "Read files"
+      ],
+      "destinations": [
+        {
+          "type": "skill",
+          "location": "~/projects/acme-site/.claude/skills/meeting-notes-helper/SKILL.md"
+        }
+      ],
+      "brief_path": "~/projects/acme-site/agents/meeting-notes-helper/agent-brief.md",
+      "tests": null,
+      "tags": [
+        "work"
+      ],
+      "notes": "",
+      "status": "active",
+      "created": "2026-11-21T14:00",
+      "updated": "2026-11-21T14:05",
+      "version": 1,
+      "scope": "project",
+      "project": "~/projects/acme-site"
     },
     {
-      "id": "invoice-checker", "name": "Invoice Checker", "emoji": "🧾",
+      "id": "invoice-checker",
+      "name": "Invoice Checker",
+      "emoji": "🧾",
       "tagline": "Checks invoices against purchase orders and flags mismatches.",
-      "for": "Just me", "abilities": ["Read files", "Run code"],
-      "destinations": [{"type": "standalone-app", "location": "~/agents/invoice-checker/"}],
+      "for": "Just me",
+      "abilities": [
+        "Read files",
+        "Run code"
+      ],
+      "destinations": [
+        {
+          "type": "standalone-app",
+          "location": "~/agents/invoice-checker/"
+        }
+      ],
       "brief_path": "~/agents/invoice-checker/agent-brief.md",
-      "tests": {"passed": 6, "total": 6, "last_run": "2026-11-10T11:00", "method": "live"},
-      "tags": ["finance"], "notes": "Replaced by the accounting team's tool.",
-      "status": "archived", "created": "2026-11-02T10:00", "updated": "2026-11-15T09:00", "version": 4
+      "tests": {
+        "passed": 6,
+        "total": 6,
+        "last_run": "2026-11-10T11:00",
+        "method": "live"
+      },
+      "tags": [
+        "finance"
+      ],
+      "notes": "Replaced by the accounting team's tool.",
+      "status": "archived",
+      "created": "2026-11-02T10:00",
+      "updated": "2026-11-15T09:00",
+      "version": 4,
+      "scope": "personal"
     }
   ]
 }

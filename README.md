@@ -29,7 +29,7 @@ Every agent you build is added to **My Agents** automatically. Run `/agent-build
 
 <p align="center"><img src="docs/my-agents.png" alt="My Agents dashboard showing agent cards with what each does, where it lives, and test status" width="720"></p>
 
-From there you can update an agent, run its tests, tag it (#work, #personal), add notes, archive agents you don't use, or delete them (always with confirmation). In Claude Code the list is saved for you in `~/.claude/agent-builder/my-agents.json`. On claude.ai, the builder hands you an updated `my-agents.json` to keep in a "My Agents" Project.
+From there you can update an agent, run its tests, tag it (#work, #personal), add notes, archive agents you don't use, or delete them (always with confirmation). In Claude Code the list is saved for you in `~/.claude/agent-builder/my-agents.json`. It covers **all your projects**: agents installed "only for this project" are labeled with their project, and flagged when you're working somewhere else. On claude.ai, the builder hands you an updated `my-agents.json` to keep in a "My Agents" Project.
 
 ### Reusing an existing chat
 

@@ -119,7 +119,7 @@ Generate the files exactly as specified in `references/output-formats.md`, inclu
 - **In Claude Code:** ask: "Want me to install it for you (recommended), or just save the files in a folder?" For install, ask "Just for you everywhere, or only in this project?" Check the target first, and never overwrite an existing file without asking. Otherwise write to `./<agent-id>/`.
 - **Without file tools:** present each file as a separate code block with its filename as a heading, the most important one (what they paste) first.
 - Run the checklist at the end of `references/output-formats.md` before presenting.
-- **Register the agent in My Agents** (see "Register the agent" in `references/output-formats.md`). In Claude Code, run `scripts/agent_registry.py upsert <entry.json>`. On claude.ai, add or update the entry in the user's `my-agents.json` (start a new one if they don't have it) and hand the file back with the other files.
+- **Register the agent in My Agents** (see "Register the agent" in `references/output-formats.md`), with **full paths** and its scope: personal (works in every project) or this project only, with the project folder. In Claude Code, run `scripts/agent_registry.py upsert <entry.json>`. On claude.ai, add or update the entry in the user's `my-agents.json` (start a new one if they don't have it) and hand the file back with the other files.
 
 ## Phase 6 · Test the finished agent
 
