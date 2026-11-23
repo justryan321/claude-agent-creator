@@ -4,6 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>My Agents</title>
+<script>
+  /* Apply the saved theme choice before the page paints, to avoid a flash. */
+  try { const t = localStorage.getItem("my-agents-theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
 <style>
   :root {
     --bg: #f7f5f2;
@@ -59,7 +63,21 @@
   svg.i { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
   svg.i.sm { width: 14px; height: 14px; }
 
-  header { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+  :root { color-scheme: light dark; }
+  :root[data-theme="light"] { color-scheme: light; }
+  :root[data-theme="dark"] { color-scheme: dark; }
+  header { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "logo text theme";
+    align-items: center; gap: 16px; margin-bottom: 20px; }
+  header .logo { grid-area: logo; }
+  header .htext { grid-area: text; }
+  header .theme { grid-area: theme; }
+  .theme { justify-self: end; display: inline-flex; gap: 2px; padding: 3px; background: var(--surface); border: 1px solid var(--line);
+    border-radius: 12px; box-shadow: var(--shadow); }
+  .theme button { border: 0; background: transparent; color: var(--muted); border-radius: 9px; padding: 6px 10px; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px; font: inherit; font-size: 13px; }
+  .theme button:hover { color: var(--text); }
+  .theme button[aria-pressed="true"] { background: var(--brand-soft); color: var(--brand); font-weight: 600; }
+  .theme button:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
   .logo { width: 56px; height: 56px; border-radius: 16px; display: grid; place-items: center; flex: none;
     background: linear-gradient(145deg, var(--brand-soft), var(--surface)); border: 1px solid var(--line); box-shadow: var(--shadow); color: var(--brand); }
   .logo svg.i { width: 28px; height: 28px; }
@@ -131,6 +149,9 @@
   .count { font-size: 13px; color: var(--muted); margin: 0 0 10px; }
 
   @media (max-width: 760px) {
+    header { grid-template-columns: auto 1fr; grid-template-areas: "logo theme" "text text"; gap: 12px; }
+    .theme button span { display: none; }
+    .theme button { padding: 6px 8px; }
     .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .grid { grid-template-columns: 1fr; }
   }
@@ -181,6 +202,30 @@ const ICONS = {
   chevron: '<path d="M9 6l6 6-6 6"/>'
 };
 
+Object.assign(ICONS, {
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+  moon: '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>',
+  monitor: '<rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/>'
+});
+
+/* Theme: "system" follows the device setting; "light"/"dark" override it. Saved per browser. */
+function currentTheme() { return document.documentElement.dataset.theme || "system"; }
+function setTheme(t) {
+  if (t === "system") delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = t;
+  try { if (t === "system") localStorage.removeItem("my-agents-theme"); else localStorage.setItem("my-agents-theme", t); } catch (e) {}
+}
+function themeToggle() {
+  const g = el("div", "theme"); g.setAttribute("role", "group"); g.setAttribute("aria-label", "Color theme");
+  [["system", "monitor", "System"], ["light", "sun", "Light"], ["dark", "moon", "Dark"]].forEach(([v, ic, label]) => {
+    const b = el("button"); b.type = "button"; b.title = label + " theme"; b.setAttribute("aria-label", label + " theme");
+    b.setAttribute("aria-pressed", currentTheme() === v ? "true" : "false");
+    b.append(icon(ic, "sm"), el("span", null, label));
+    b.addEventListener("click", () => { setTheme(v); g.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b ? "true" : "false")); });
+    g.append(b);
+  });
+  return g;
+}
+
 const DEST = {
   "claude-ai-project": {label: "Claude.ai Project", icon: "message", kind: "input"},
   "subagent":          {label: "Claude Code subagent", icon: "users", kind: "think"},
@@ -219,9 +264,9 @@ function render() {
 
   const head = el("header");
   const logo = el("div", "logo"); logo.append(icon("users"));
-  const ht = el("div"); ht.append(el("h1", null, "My Agents"));
+  const ht = el("div", "htext"); ht.append(el("h1", null, "My Agents"));
   ht.append(el("p", null, "Everything you've built with the Agent Builder" + (DATA.generated ? " · updated " + fmtDate(DATA.generated) : "")));
-  head.append(logo, ht); app.append(head);
+  head.append(logo, ht, themeToggle()); app.append(head);
 
   if (!agents.length) {
     const e = el("div", "empty"); e.append(el("div", "big", "🗂️"), el("h2", null, "No agents yet"));

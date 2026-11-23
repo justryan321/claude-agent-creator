@@ -25,7 +25,7 @@ After your agent is built, the builder writes **6–8 test cases** for it: every
 
 ### Keeping track of your agents
 
-Every agent you build is added to **My Agents** automatically. Run `/agent-builder:my-agents`, or just say *"my agents"*, to see how many you have and what each one does, in a chat table and a visual dashboard:
+Every agent you build is added to **My Agents** automatically. Run `/agent-builder:my-agents`, or just say *"my agents"*, to see how many you have and what each one does, in a chat table and a visual dashboard (with a light/dark theme switch):
 
 <p align="center"><img src="docs/my-agents.png" alt="My Agents dashboard showing agent cards with what each does, where it lives, and test status" width="720"></p>
 

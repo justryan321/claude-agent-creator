@@ -50,7 +50,7 @@ Then show the **visual dashboard**:
   ```
   If the browser doesn't open (remote or headless machine), give the full path and say "open this file in your web browser".
 
-The dashboard has totals, search, and filters (active/archived, where it lives, tags), and a card per agent with what it does, its abilities, test status, tags, and notes.
+The dashboard has totals, search, filters (active/archived, where it lives, tags), a System / Light / Dark theme switch (remembered in that browser), and a card per agent with what it does, its abilities, test status, tags, and notes.
 
 ## 3. Offer actions
 
