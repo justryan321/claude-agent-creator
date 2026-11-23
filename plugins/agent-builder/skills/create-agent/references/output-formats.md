@@ -1,6 +1,43 @@
 # Output formats
 
-Generate the files for every destination the user chose. Put all of them in one folder named `<agent-id>/`, with a `HOW-TO-USE.md` at the top level that covers each destination. Replace every `<placeholder>`; none may remain in the final files.
+Generate the files for every destination the user chose. Put all of them in one folder named `<agent-id>/`, with a `HOW-TO-USE.md` and an `agent-brief.md` at the top level. Replace every `<placeholder>`; none may remain in the final files.
+
+## Always included: `agent-brief.md`
+
+The agent's "save file". It lets the user (or the Agent Builder later) update the agent without starting over, and works as bring-your-own-context input.
+
+```markdown
+# Agent Brief: <Display Name>
+_Created with the Claude Agent Builder on <date>. To change this agent, run the Agent Builder, say "update my agent", and share this file._
+
+## Agent Card
+<the final Agent Card, as shown in Phase 3>
+
+## Example requests
+- <example 1>
+- <example 2>
+- <tricky example>
+
+## Where it came from
+<one line per context source used, e.g. "Chat: 'Bakery FAQ bot' (Oct 2026)", "File: pricing.pdf". Or "Built from scratch".>
+
+## Instructions
+<INSTRUCTIONS>
+```
+
+## "Install it for me" (Claude Code only)
+
+When the user picks install, write the agent directly to its live location instead of (or in addition to) `./<agent-id>/`, after checking that nothing with that name exists there:
+
+| Format | Just for me, all projects | Only this project |
+|---|---|---|
+| Subagent | `~/.claude/agents/<agent-id>.md` | `.claude/agents/<agent-id>.md` |
+| Skill | `~/.claude/skills/<agent-id>/SKILL.md` | `.claude/skills/<agent-id>/SKILL.md` |
+| Knowledge files | `~/.claude/agents/knowledge/<agent-id>/` | `.claude/agents/knowledge/<agent-id>/` |
+
+Still save `agent-brief.md` and `HOW-TO-USE.md` to `./<agent-id>/` (or next to the installed file if they prefer). Then tell them exactly how to try it right now, for example: "Type: *Use the <agent-id> agent to <example 1>*". New subagents and skills are picked up within seconds, so no restart is needed. If it doesn't show up, suggest restarting Claude Code.
+
+For the **standalone app**, if you have a shell and the user agrees, run the setup for them (create the virtual environment, install requirements, copy `.env.example` to `.env`). Then have them paste their API key into `.env` themselves. Never ask for the key in chat.
 
 `<INSTRUCTIONS>` below always means the full agent instructions written per `writing-instructions.md`, after the test-drive revisions.
 
@@ -73,7 +110,7 @@ Rules:
 3. In Claude Code, ask: "Use the <agent-id> agent to <example request 1>", or type `@` and pick it from the list.
 4. To make it the main agent for a whole session, start Claude Code with: `claude --agent <agent-id>`
 ```
-If you're running in Claude Code and the user agrees, you may install the file into `~/.claude/agents/` or `.claude/agents/` directly instead of the output folder, after checking that no file with that name already exists.
+For "Install it for me", see the install table near the top of this file.
 
 ---
 
@@ -280,7 +317,7 @@ Whenever the agent wants to do something that changes things (like editing a fil
 - "<tricky example>" (watch how it handles this one)
 
 ## Changing it later
-Your agent's behavior lives in its instructions (<file name>). Edit that text in any text editor, or run the Agent Builder again and say "I want to change my agent".
+Your agent's behavior lives in its instructions (<file name>). Edit that text in any text editor, or run the Agent Builder again, say "update my agent", and share `agent-brief.md`. It remembers everything about how this agent was built.
 ```
 
 ---
@@ -294,4 +331,6 @@ Your agent's behavior lives in its instructions (<file name>). Edit that text in
 - [ ] Instructions include the boundaries, handoff, and situation-specific additions from `writing-instructions.md`.
 - [ ] Test-drive feedback is reflected in the instructions.
 - [ ] HOW-TO-USE.md has steps for every chosen destination and 2–3 example requests.
-- [ ] No API keys, passwords, or personal data are written into any file.
+- [ ] No API keys, passwords, or personal data are written into any file (re-check imported context).
+- [ ] `agent-brief.md` is included and matches the final instructions.
+- [ ] If installed: the file is in the right folder and you told the user the exact first thing to type.

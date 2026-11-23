@@ -55,7 +55,7 @@ Options: **Bullet points** · **Short paragraphs** · **Step-by-step instruction
 - Ask for a sample of output they like if they have one. It's the best guide you can get.
 
 ## 9. Where it will live
-See SKILL.md Phase 2 item 9. Ask whether they already use Claude Code or claude.ai, since this usually decides it. For the standalone app, confirm they're comfortable installing Python and getting an Anthropic API key. If not, steer to the other options.
+See the "Easy setup" table in SKILL.md Phase 5. You usually already know the answer from the environment (Claude Code vs. claude.ai), so propose it rather than asking from scratch: "Since you're using claude.ai, I'll set it up as a Project you can chat with. Sound good?" For the standalone app, confirm they're comfortable installing Python and getting an Anthropic API key. If not, steer to the other options.
 
 ## 10. Name
 Offer 2–3 names: one descriptive ("Bakery Help Desk"), one friendly ("Penny"), one functional ("support-bot"). The id is lowercase letters, digits and hyphens only, max 64 characters.

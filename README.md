@@ -4,10 +4,20 @@
 
 Agent Creator is a Claude plugin. Once it's installed, run one command and Claude becomes your agent-building guide:
 
-1. **Interview:** start from a template, describe your idea in your own words, or go step by step.
+1. **Start your way:**
+   - **Bring what you already have:** an existing Claude (or ChatGPT/Gemini) chat, documents, old instructions from a Project or custom GPT, or a Claude data export.
+   - **Pick a template.**
+   - **Describe it in a sentence.**
+   - **⚡ Express:** one sentence, and Claude builds the rest.
+
+   Claude asks only about the gaps.
 2. **Agent Card:** review a one-screen summary of your agent's job, tone, abilities, and boundaries.
 3. **Test drive:** chat with your agent right away and give feedback until it behaves the way you want.
-4. **Files:** get everything you need to use it, with plain-language setup steps.
+4. **Easy setup:** in Claude Code, the builder can **install the agent for you**. On claude.ai, you get one copy-ready block and click-by-click steps. Every agent comes with an `agent-brief.md` save file, so you can come back and say *"update my agent"* anytime.
+
+### Reusing an existing chat
+
+The easiest way to reuse a chat is the **Context Capture Prompt**. The builder gives you a short message to paste into your old chat. That chat writes an "Agent Brief" of everything you discussed, and you paste the brief back into the builder. You can also paste conversations directly, upload files, or upload a Claude/ChatGPT data export (the builder includes a tool that finds the right chat inside the export). In Claude Code, it can also reuse your past Claude Code sessions.
 
 Your agent can be delivered as any of these:
 
@@ -64,11 +74,15 @@ plugins/agent-builder/
 ├── .claude-plugin/plugin.json           # plugin manifest
 └── skills/create-agent/
     ├── SKILL.md                         # the builder's flow (interview → card → test drive → files)
-    └── references/
-        ├── templates.md                 # starter agent templates
-        ├── interview-guide.md           # question wording and ability → tool mapping
-        ├── writing-instructions.md      # how the agent's instructions are written
-        └── output-formats.md            # exact file formats for each destination
+    ├── references/
+    │   ├── bring-your-own-context.md    # importing chats, files, old instructions, exports
+    │   ├── templates.md                 # starter agent templates
+    │   ├── interview-guide.md           # question wording and ability → tool mapping
+    │   ├── writing-instructions.md      # how the agent's instructions are written
+    │   ├── output-formats.md            # file formats, install locations, agent-brief.md
+    │   └── glossary.md                  # plain-language explanations of technical terms
+    └── scripts/
+        └── extract_conversations.py     # reads Claude/ChatGPT exports and Claude Code sessions
 ```
 
 ## Contributing
