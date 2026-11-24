@@ -40,7 +40,7 @@ Start with one line of totals, then a compact table:
 📝 Meeting Notes Helper  Turns notes into action items…      Claude skill           · not tested
 ```
 
-"Needs attention" counts agents with failing tests or no tests. Mention them in one helpful line, for example: "Bakery Help Desk failed 2 tests last time. Want to look at it?"
+"Needs attention" counts agents with failing tests, no tests, or no saved "how to start" (older agents; fix with "add how-to-use for all my agents"). Mention them in one helpful line, for example: "Bakery Help Desk failed 2 tests last time. Want to look at it?"
 
 Then show the **visual dashboard**:
 - **Artifacts available** (claude.ai, Claude Desktop): read `../create-agent/assets/dashboard-template.html`, replace everything between `/*AGENTS_DATA_START*/` and `/*AGENTS_DATA_END*/` with `{"generated": "<now>", "agents": [...]}` (escape `</` as `<\/`), and present it as an HTML artifact titled "My Agents". If you can't read the template (for example, this skill was uploaded to claude.ai on its own), build a simple HTML artifact with the same parts: totals, a search box, and one card per agent (emoji, name, what it does, where it lives, test status, tags).
@@ -52,7 +52,7 @@ Then show the **visual dashboard**:
 
 The dashboard has:
 - totals
-- a **Needs attention** strip: failing tests, no tests, missing files, unclear locations, each with a phrase to fix it
+- a **Needs attention** strip: failing tests, no tests, missing files, unclear locations, no saved "how to start", each with a phrase to fix it
 - search, a sort menu, and filters (active/archived, where it lives, tags)
 - a System / Light / Dark theme switch, remembered in that browser
 - a card per agent with one-click **Copy** buttons on the phrases to paste into the chat
@@ -69,6 +69,7 @@ Ask what they'd like to do, offering only what makes sense, e.g. "Want to update
 |---|---|
 | **See details** of one | `check <id>` (where it works, and each file's full path with ✅ / ❌ missing), then summarize it in plain words: job, where it lives, abilities, last test, notes. Use `show <id>` for the raw entry. |
 | **Use it** ("how do I use…", "how do I start…") | Run `how <id>` and show the steps in plain words: where to go, the exact first message to type, and examples to try. If it lives in another project, say to open that project first. For setup details (knowledge files, API key, Project instructions), read the `HOW-TO-USE.md` path it prints. On claude.ai, build the same steps from the entry's `destinations` and `usage`. |
+| **Add how-to-use** to older agents ("how to start" missing) | Hand off to the Agent Builder's "Adding how-to-use to an existing agent" (`/agent-builder:create-agent`), for one agent or all of them. It reads each agent's brief and saves the first message and examples with `set-usage`, without rebuilding anything. |
 | **Change / improve** one | Hand off to the Agent Builder's "update my agent" flow (`/agent-builder:create-agent`), loading the agent from its `brief_path` (or the file at its destination). Full paths mean this works from any project. For a project-only agent, mention that testing it live works best from inside its project. The builder re-registers it afterwards. |
 | **Run its tests** / **add a test** | Hand off to the Agent Builder's Phase 6 with that agent's `tests/test-cases.json` (in the folder holding `agent-brief.md`). Results are saved with `set-tests`. |
 | **Tag** it | `tag <id> --add work clients` / `--remove old`. Suggest a few tags if they're unsure (work, personal, business, team, experiment). |

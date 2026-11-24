@@ -39,7 +39,7 @@ Every agent you build or update is recorded in the user's **My Agents** registry
   - `"personal"` = installed "just for me, in all projects" (under `~/.claude/`), a standalone app, or a claude.ai Project.
   - `"project"` = installed "only in this project" (under `<project>/.claude/`). Set `project` to that project's folder (the top of the repository, i.e. `git rev-parse --show-toplevel`, or the current folder if it isn't a git repository). The install path must be inside it.
 - Use one `destinations` item per place it lives.
-- **Always fill `usage`.** `start` is the same first message you tell the user in "▶️ How to use it" (below), and `examples` are the "Try these first" requests from HOW-TO-USE.md. The My Agents dashboard shows them as a **Start using it** box on the agent's card and a step-by-step **How to use it** section in its Details panel, and `agent_registry.py how <agent-id>` prints the same steps in chat.
+- **Always fill `usage`.** `start` is the same first message you tell the user in "▶️ How to use it" (below), and `examples` are the "Try these first" requests from HOW-TO-USE.md. The My Agents dashboard shows them as a **Start using it** box on the agent's card and a step-by-step **How to use it** section in its Details panel, and `agent_registry.py how <agent-id>` prints the same steps in chat. To save or change just these two fields later, without a new version, use `agent_registry.py set-usage <agent-id> --start "…" --example "…"`.
 - Leave `tests` out; Phase 6 records them with `set-tests`. On an update, tags, notes, and the creation date are kept automatically.
 - Offer one or two tags based on the job ("work", "business", "personal"), only if the user wants them.
 

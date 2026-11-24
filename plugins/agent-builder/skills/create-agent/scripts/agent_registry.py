@@ -9,6 +9,7 @@ Usage:
   agent_registry.py [--registry PATH] show <id>
   agent_registry.py [--registry PATH] check <id>
   agent_registry.py [--registry PATH] how <id>
+  agent_registry.py [--registry PATH] set-usage <id> --start "first message" [--example "..." ...] [--guide PATH]
   agent_registry.py [--registry PATH] upsert <entry.json>
   agent_registry.py [--registry PATH] set-tests <id> --passed N --total N [--method M]
   agent_registry.py [--registry PATH] tag <id> [--add TAG ...] [--remove TAG ...]
@@ -188,18 +189,23 @@ def validate_entry(e: dict) -> list[str]:
     brief = e.get("brief_path")
     if brief and brief != "kept by user" and not is_abs(brief):
         problems.append("'brief_path' must be a full path, or 'kept by user'")
-    usage = e.get("usage")
-    if usage is not None:
-        if not isinstance(usage, dict):
-            problems.append("'usage' must be an object like {\"start\": \"...\", \"examples\": [...]}")
-        else:
-            if not str(usage.get("start", "")).strip():
-                problems.append("'usage.start' is required: the exact first message to type to use the agent")
-            if "examples" in usage and not isinstance(usage["examples"], list):
-                problems.append("'usage.examples' must be a list")
-            guide = usage.get("guide_path")
-            if guide and not is_abs(guide):
-                problems.append("'usage.guide_path' must be a full path to HOW-TO-USE.md")
+    if e.get("usage") is not None:
+        problems += validate_usage(e["usage"])
+    return problems
+
+
+def validate_usage(usage) -> list[str]:
+    problems = []
+    if not isinstance(usage, dict):
+        problems.append("'usage' must be an object like {\"start\": \"...\", \"examples\": [...]}")
+    else:
+        if not str(usage.get("start", "")).strip():
+            problems.append("'usage.start' is required: the exact first message to type to use the agent")
+        if "examples" in usage and not isinstance(usage["examples"], list):
+            problems.append("'usage.examples' must be a list")
+        guide = usage.get("guide_path")
+        if guide and not is_abs(guide):
+            problems.append("'usage.guide_path' must be a full path to HOW-TO-USE.md")
     return problems
 
 
@@ -266,6 +272,8 @@ def cmd_list(data, args):
             flags.append("[archived]")
         if not usable_in(a, here):
             flags.append(f"⛔ only works in {project_name(a)}" if a.get("project") else "⛔ project unknown")
+        if a.get("status", "active") == "active" and not has_usage(a):
+            flags.append("· no start message (say: add how-to-use for " + a["id"] + ")")
         if unclear(a):
             flags.append("⚠ location unclear, update this agent to fix")
         elif missing(a):
@@ -349,6 +357,27 @@ def cmd_how(data, args):
     g = guide_path(a)
     if g and resolve(g).exists():
         print(f"\nFull guide (setup details too): {resolve(g)}")
+
+
+def has_usage(a: dict) -> bool:
+    return bool(str((a.get("usage") or {}).get("start", "")).strip())
+
+
+def cmd_set_usage(data, args):
+    """Save how to start using an agent, without touching anything else (no new version)."""
+    a = find(data, args.id)
+    usage = dict(a.get("usage") or {})
+    usage["start"] = args.start.strip()
+    if args.example is not None:
+        usage["examples"] = [x.strip() for x in args.example if x.strip()]
+    if args.guide:
+        usage["guide_path"] = args.guide
+    problems = validate_usage(usage)
+    if problems:
+        fail("Usage problems:\n  - " + "\n  - ".join(problems))
+    a["usage"] = usage
+    print(f"{a['name']}: saved how to start using it. Run 'how {a['id']}' to see the steps.")
+    return True
 
 
 def cmd_check(data, args):
@@ -530,6 +559,10 @@ def main() -> None:
     s = sub.add_parser("check"); s.add_argument("id")
     s = sub.add_parser("show"); s.add_argument("id")
     s = sub.add_parser("how"); s.add_argument("id")
+    s = sub.add_parser("set-usage"); s.add_argument("id")
+    s.add_argument("--start", required=True, help="the exact first message to type to use the agent")
+    s.add_argument("--example", action="append", help="a request to try first (repeat for more; replaces the saved examples)")
+    s.add_argument("--guide", help="full path of the agent's HOW-TO-USE.md, if it isn't next to agent-brief.md")
     s = sub.add_parser("upsert"); s.add_argument("entry")
     s = sub.add_parser("set-tests"); s.add_argument("id"); s.add_argument("--passed", type=int, required=True); s.add_argument("--total", type=int, required=True); s.add_argument("--method", default="live", choices=["live", "simulated", "manual"]); s.add_argument("--report", help="full path of the HTML test report")
     s = sub.add_parser("tag"); s.add_argument("id"); s.add_argument("--add", nargs="*"); s.add_argument("--remove", nargs="*")
@@ -544,7 +577,7 @@ def main() -> None:
     path = Path(args.registry).expanduser()
     data = load(path)
     handlers = {
-        "list": cmd_list, "show": cmd_show, "check": cmd_check, "how": cmd_how, "upsert": cmd_upsert, "set-tests": cmd_set_tests,
+        "list": cmd_list, "show": cmd_show, "check": cmd_check, "how": cmd_how, "set-usage": cmd_set_usage, "upsert": cmd_upsert, "set-tests": cmd_set_tests,
         "tag": cmd_tag, "note": cmd_note, "remove": cmd_remove, "dashboard": cmd_dashboard,
         "archive": lambda d, a: cmd_status(d, a, "archived"),
         "restore": lambda d, a: cmd_status(d, a, "active"),
