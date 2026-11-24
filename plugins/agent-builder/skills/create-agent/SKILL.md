@@ -193,7 +193,7 @@ Agents built before the "▶️ How to use it" step have no saved first message,
 4. Save it: in Claude Code, `scripts/agent_registry.py set-usage <id> --start "…" --example "…" --example "…"`. This doesn't raise the version number. On claude.ai, add the `usage` field to the entry in `my-agents.json` and hand the file back.
 5. If `HOW-TO-USE.md` is missing, offer to write it next to `agent-brief.md` (shape at the end of `references/output-formats.md`), checking first that nothing is there.
 
-Then say they'll see it on the agent's card in My Agents (**Start using it**) and under **Details → How to use it**.
+Then **show the updated My Agents dashboard**, so they can see the change right away: in Claude Code, run `scripts/agent_registry.py dashboard ~/.claude/agent-builder/my-agents.html --open` (or tell them to reload that page if it's already open); on claude.ai, re-create the dashboard artifact from the updated `my-agents.json` (see `/agent-builder:my-agents` step 2), since an artifact shown earlier never changes. Point out the **Start using it** box on each card and **Details → How to use it**. A page they opened earlier, or an old artifact, won't show the change.
 
 If the user just wants to **run or add tests** for an existing agent, load the agent and its `tests/test-cases.json` and go straight to Phase 6.
 

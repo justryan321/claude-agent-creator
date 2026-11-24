@@ -49,6 +49,7 @@ Then show the **visual dashboard**:
   python3 <create-agent-dir>/scripts/agent_registry.py dashboard ~/.claude/agent-builder/my-agents.html --open
   ```
   If the browser doesn't open (remote or headless machine), give the full path and say "open this file in your web browser".
+  After that, any change made with the script (update, tests, tags, how-to-use, …) refreshes this page automatically; tell the user to **reload** it. On claude.ai, an artifact doesn't update itself: after any change, show a new dashboard artifact built from the updated `my-agents.json`.
 
 The dashboard has:
 - totals
