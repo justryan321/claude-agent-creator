@@ -8,6 +8,7 @@ Usage:
   agent_registry.py [--registry PATH] list [--all] [--tag TAG] [--usable-here] [--here DIR] [--json]
   agent_registry.py [--registry PATH] show <id>
   agent_registry.py [--registry PATH] check <id>
+  agent_registry.py [--registry PATH] how <id>
   agent_registry.py [--registry PATH] upsert <entry.json>
   agent_registry.py [--registry PATH] set-tests <id> --passed N --total N [--method M]
   agent_registry.py [--registry PATH] tag <id> [--add TAG ...] [--remove TAG ...]
@@ -187,6 +188,18 @@ def validate_entry(e: dict) -> list[str]:
     brief = e.get("brief_path")
     if brief and brief != "kept by user" and not is_abs(brief):
         problems.append("'brief_path' must be a full path, or 'kept by user'")
+    usage = e.get("usage")
+    if usage is not None:
+        if not isinstance(usage, dict):
+            problems.append("'usage' must be an object like {\"start\": \"...\", \"examples\": [...]}")
+        else:
+            if not str(usage.get("start", "")).strip():
+                problems.append("'usage.start' is required: the exact first message to type to use the agent")
+            if "examples" in usage and not isinstance(usage["examples"], list):
+                problems.append("'usage.examples' must be a list")
+            guide = usage.get("guide_path")
+            if guide and not is_abs(guide):
+                problems.append("'usage.guide_path' must be a full path to HOW-TO-USE.md")
     return problems
 
 
@@ -265,6 +278,77 @@ def cmd_list(data, args):
 
 def cmd_show(data, args):
     print(json.dumps(find(data, args.id), ensure_ascii=False, indent=2))
+
+
+def guide_path(a: dict) -> str | None:
+    """Full path of the agent's HOW-TO-USE.md (given, or next to agent-brief.md)."""
+    g = (a.get("usage") or {}).get("guide_path")
+    if g and is_abs(g):
+        return g
+    brief = a.get("brief_path")
+    if brief and brief != "kept by user" and is_abs(brief):
+        return str(Path(str(brief)).parent / "HOW-TO-USE.md")
+    return None
+
+
+def start_phrase(a: dict) -> str:
+    """The first thing to type to use the agent; a sensible default for older entries."""
+    start = str((a.get("usage") or {}).get("start", "")).strip()
+    if start:
+        return start
+    types = [d.get("type") for d in a.get("destinations", []) or []]
+    if "skill" in types:
+        return f"/{a['id']}"
+    if "subagent" in types:
+        return f"Use the {a['id']} agent to <what you need>"
+    return "<your first request>"
+
+
+def how_steps(a: dict) -> list[tuple[str, list[str]]]:
+    """(destination label, steps) in plain words. Mirrors howSteps() in the dashboard."""
+    start, out = start_phrase(a), []
+    where = f"Open Claude Code in your {project_name(a)} project (it only works there)." if scope_of(a) == "project" \
+        else "Open Claude Code in any project."
+    for d in a.get("destinations", []) or []:
+        t, loc = d.get("type"), str(d.get("location", ""))
+        if t == "subagent":
+            out.append((DEST_LABELS[t], [where, f"Type: {start}", f"Or type @ and pick {a['id']} from the list.",
+                                         f"To make it the main agent for a whole session, start Claude Code with: claude --agent {a['id']}"]))
+        elif t == "skill":
+            ask = f"Type /{a['id']}" + ("" if start == f"/{a['id']}" else f", or just ask: {start}")
+            out.append((DEST_LABELS[t], [where, ask,
+                                         "On claude.ai (if you uploaded the skill): turn it on under Settings → Capabilities → Skills, then ask in any chat."]))
+        elif t == "claude-ai-project":
+            name = loc.split(":", 1)[1].strip() if ":" in loc else a.get("name", a["id"])
+            out.append((DEST_LABELS[t], ["Go to claude.ai and click Projects.", f"Open the project \"{name}\".",
+                                         f"Start a new chat inside the project and type: {start}"]))
+        elif t == "standalone-app":
+            folder = str(Path(loc)) if loc else "the agent's folder"
+            out.append((DEST_LABELS[t], [f"Open a terminal in {folder}",
+                                         "Turn on its Python environment: source .venv/bin/activate  (Windows: .venv\\Scripts\\Activate.ps1)",
+                                         "Start it: python agent.py", f"Type: {start}   (type quit to stop)"]))
+    return out
+
+
+def cmd_how(data, args):
+    """How to start using this agent, in plain steps."""
+    a = find(data, args.id)
+    print(f"▶️ How to use {a.get('emoji', '🤖')} {a['name']} ({a['id']})")
+    if a.get("status") == "archived":
+        print(f"   (archived: say \"restore {a['id']}\" first if its files were moved aside)")
+    for label, steps in how_steps(a) or [("", ["No place to use it is recorded yet. Say \"update " + a["id"] + "\" to set it up."])]:
+        if label:
+            print(f"\n{label}:")
+        for i, step in enumerate(steps, 1):
+            print(f"  {i}. {step}")
+    examples = (a.get("usage") or {}).get("examples") or []
+    if examples:
+        print("\nTry these first:")
+        for ex in examples:
+            print(f"  - {ex}")
+    g = guide_path(a)
+    if g and resolve(g).exists():
+        print(f"\nFull guide (setup details too): {resolve(g)}")
 
 
 def cmd_check(data, args):
@@ -411,9 +495,10 @@ def dashboard_extras(a: dict, here: Path) -> dict:
     rep_path = (a.get("tests") or {}).get("report") or (str(agent_dir / "tests" / "test-report.html") if agent_dir else None)
     if rep_path and is_abs(rep_path):
         report = file_uri(rep_path)
+    guide = guide_path(a)
     return {"scope": display_scope(a), "_usable_here": usable_in(a, here), "_unclear": unclear(a),
             "_missing": missing(a), "_paths": paths, "_instructions": instructions_preview(a),
-            "_flow_url": flow, "_report_url": report,
+            "_flow_url": flow, "_report_url": report, "_guide_url": file_uri(guide) if guide else None,
             "_project_name": project_name(a) if a.get("project") else None}
 
 
@@ -444,6 +529,7 @@ def main() -> None:
     s.add_argument("--usable-here", action="store_true", help="only agents that work in --here")
     s = sub.add_parser("check"); s.add_argument("id")
     s = sub.add_parser("show"); s.add_argument("id")
+    s = sub.add_parser("how"); s.add_argument("id")
     s = sub.add_parser("upsert"); s.add_argument("entry")
     s = sub.add_parser("set-tests"); s.add_argument("id"); s.add_argument("--passed", type=int, required=True); s.add_argument("--total", type=int, required=True); s.add_argument("--method", default="live", choices=["live", "simulated", "manual"]); s.add_argument("--report", help="full path of the HTML test report")
     s = sub.add_parser("tag"); s.add_argument("id"); s.add_argument("--add", nargs="*"); s.add_argument("--remove", nargs="*")
@@ -458,7 +544,7 @@ def main() -> None:
     path = Path(args.registry).expanduser()
     data = load(path)
     handlers = {
-        "list": cmd_list, "show": cmd_show, "check": cmd_check, "upsert": cmd_upsert, "set-tests": cmd_set_tests,
+        "list": cmd_list, "show": cmd_show, "check": cmd_check, "how": cmd_how, "upsert": cmd_upsert, "set-tests": cmd_set_tests,
         "tag": cmd_tag, "note": cmd_note, "remove": cmd_remove, "dashboard": cmd_dashboard,
         "archive": lambda d, a: cmd_status(d, a, "archived"),
         "restore": lambda d, a: cmd_status(d, a, "active"),

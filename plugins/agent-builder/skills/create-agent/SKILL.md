@@ -139,7 +139,8 @@ Generate the files exactly as specified in `references/output-formats.md`, inclu
 - **In Claude Code:** ask: "Want me to install it for you (recommended), or just save the files in a folder?" For install, ask "Just for you everywhere, or only in this project?" Check the target first, and never overwrite an existing file without asking. Otherwise write to `./<agent-id>/`.
 - **Without file tools:** present each file as a separate code block with its filename as a heading, the most important one (what they paste) first.
 - Run the checklist at the end of `references/output-formats.md` before presenting.
-- **Register the agent in My Agents** (see "Register the agent" in `references/output-formats.md`), with **full paths** and its scope: personal (works in every project) or this project only, with the project folder. In Claude Code, run `scripts/agent_registry.py upsert <entry.json>`. On claude.ai, add or update the entry in the user's `my-agents.json` (start a new one if they don't have it) and hand the file back with the other files.
+- **Show "▶️ How to use it" in the chat** right after the files are built or installed, before testing: where to go, the exact first message to type, 2–3 requests to try, and where `HOW-TO-USE.md` is (format in "Always included: ▶️ How to use it" in `references/output-formats.md`). Never end the build without it. Users who only see files often don't know what to do next.
+- **Register the agent in My Agents** (see "Register the agent" in `references/output-formats.md`), with **full paths**, its scope, and a `usage` block (the first message to type and example requests, so the dashboard can show how to use it): personal (works in every project) or this project only, with the project folder. In Claude Code, run `scripts/agent_registry.py upsert <entry.json>`. On claude.ai, add or update the entry in the user's `my-agents.json` (start a new one if they don't have it) and hand the file back with the other files.
 
 ## Phase 6 · Test the finished agent
 
@@ -156,7 +157,7 @@ If the user wants to skip testing, let them, and mention they can say **"run my 
 ### Wrap-up
 
 1. ✅ What was created or installed (short list), and the test result ("7 of 7 tests passed").
-2. ▶️ How to start using it in 2–4 steps, and one example to try first.
+2. ▶️ How to start using it: repeat the exact first message to type (from the "How to use it" block) and where the full guide is (`HOW-TO-USE.md`, and the agent's **Details → How to use it** in My Agents).
 3. 💡 One or two ideas to make it better later (for example "add your price list as knowledge").
 4. 🔁 "Anytime you want to change it, run the Agent Builder again and say **'update my agent'**, and share `agent-brief.md` or the agent file. Say **'run my tests'** or **'add a test'** to check it again."
 5. 🗂️ "See all your agents anytime with **/agent-builder:my-agents** (or just say *my agents*)."
@@ -167,6 +168,7 @@ The Flow Preview, the My Agents dashboard, and the test report give users ready-
 
 | Phrase | Do this |
 |---|---|
+| `how do I use <id>` | Show the "▶️ How to use it" block for that agent. In Claude Code, run `scripts/agent_registry.py how <id>` and read its `HOW-TO-USE.md` for setup details |
 | `update <id>` | "Updating an existing agent" (below) |
 | `run tests for <id>` · `add tests for <id>` · `add a test for <id>` · `show my test report` | Phase 6 for that agent |
 | `fix failing tests for <id>` | Load its latest `tests/test-results.json`, explain each failure plainly, apply the suggested fixes with the user's OK, then re-run all tests |
