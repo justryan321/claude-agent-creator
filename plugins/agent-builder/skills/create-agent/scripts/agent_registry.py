@@ -19,6 +19,8 @@ Usage:
   agent_registry.py [--registry PATH] remove <id>
   agent_registry.py [--registry PATH] dashboard <out.html> [--here DIR] [--open]
 
+If a my-agents.html dashboard sits next to the registry, every change refreshes it.
+
 The registry is per computer user, so it lists agents from every project.
 Each agent has a scope: "personal" (works in every project) or "project"
 (works only inside its "project" folder). File locations are always stored as
@@ -531,22 +533,25 @@ def dashboard_extras(a: dict, here: Path) -> dict:
             "_project_name": project_name(a) if a.get("project") else None}
 
 
-def cmd_dashboard(data, args):
+def write_dashboard(data: dict, out: Path, here: Path) -> Path:
     html = TEMPLATE.read_text(encoding="utf-8")
     a, b = html.index(START) + len(START), html.index(END)
-    here = resolve(args.here)
     agents = []
     for ag in data["agents"]:  # add display-only hints; never saved to the registry
         agents.append({**ag, **dashboard_extras(ag, here)})
     payload = json.dumps({"generated": now(), "here": str(here), "here_name": here.name, "agents": agents},
                          ensure_ascii=False, indent=2)
     payload = payload.replace("</", "<\\/").replace("\u2028", "\\u2028").replace("\u2029", "\\u2029")
-    out = Path(args.output).expanduser()
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(html[:a] + payload + html[b:], encoding="utf-8")
-    print(f"Dashboard written to {out.resolve()}")
+    return out.resolve()
+
+
+def cmd_dashboard(data, args):
+    out = write_dashboard(data, Path(args.output).expanduser(), resolve(args.here))
+    print(f"Dashboard written to {out}")
     if args.open:
-        webbrowser.open(out.resolve().as_uri())
+        webbrowser.open(out.as_uri())
 
 
 def main() -> None:
@@ -584,6 +589,15 @@ def main() -> None:
     }
     if handlers[args.cmd](data, args):
         save(path, data)
+        # Keep the saved dashboard page in step with the list, so a page the user
+        # reloads always shows the latest changes.
+        page = path.with_name("my-agents.html")
+        if page.exists():
+            try:
+                write_dashboard(data, page, resolve(os.getcwd()))
+                print(f"Dashboard refreshed: {page.resolve()} (reload it in your browser)")
+            except (OSError, ValueError) as exc:
+                print(f"(Couldn't refresh the dashboard at {page}: {exc})", file=sys.stderr)
 
 
 if __name__ == "__main__":
