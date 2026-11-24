@@ -1,7 +1,7 @@
 {
   "name": "agent-builder",
-  "version": "0.6.0",
-  "description": "A friendly, step-by-step builder for your own Claude agent. No coding needed: answer a few questions, test-drive the agent in chat, and get ready-to-use files.",
+  "version": "0.7.0",
+  "description": "A friendly, step-by-step builder for your own Claude agent. No coding needed: answer a few questions (in chat, or on a page you can type or talk to), test-drive the agent in chat, and get ready-to-use files.",
   "author": {
     "name": "justryan321"
   },

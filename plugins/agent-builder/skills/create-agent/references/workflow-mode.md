@@ -146,6 +146,7 @@ Run one realistic job through at least 3 stages in a row, using the job the user
 
 Long interviews get interrupted. After the stage map, and after each stage's rules are confirmed:
 
+- **Interactive Builder (page mode):** the page saves every answer and rule as it goes. Also keep writing the draft below, so the agent can be resumed from chat too.
 - **Claude Code:** write `./<agent-id>/agent-brief.draft.md` (the Agent Card so far, stage list, and `playbook.md` content so far). Mention it once: "I'm saving your progress in `<path>`. If we get cut off, start the builder again and say *continue my agent*."
 - **claude.ai:** every two stages, offer a **progress snapshot**: one copy-ready block with everything captured so far, titled "Agent Builder progress: <Display Name>". Say they can paste it into a new chat with the builder to pick up where they left off.
 

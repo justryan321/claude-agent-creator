@@ -19,6 +19,20 @@ Agent Creator is a Claude plugin. Once it's installed, run one command and Claud
 
 <p align="center"><img src="docs/flow-preview.png" alt="Example Flow Preview diagram for a Page Summarizer agent" width="720"></p>
 
+### Build on a page you can talk to (Interactive Builder)
+
+In Claude Code, the builder recommends opening the **Interactive Builder**: a calm, full-screen page in your browser where the whole build happens, one question at a time.
+
+- **Type or speak your answers.** Hold the mic button (or hold **Space**) and talk; your words appear in the box so you can fix them before pressing Enter. Works in Chrome, Edge, and Safari. In other browsers, typing works as usual. The builder itself only shows text and never speaks.
+- **Watch your agent take shape.** Your Agent Card fills in beside the questions as you answer. Guesses are marked *my guess*, open business questions are marked *needs your answer*, and you can click any line to change it.
+- **Everything in one place:** pick answers with a click (or number keys), edit an earlier answer, drop in files or paste an old chat, approve the Flow Preview, test-drive your agent in a chat panel (with a **Something's off** button for feedback), then watch it get built, see **▶️ How to use it**, and watch the tests run.
+- **Workflow agents** get a stage map along the top, and each rule you describe appears in a playbook under its stage.
+- **Nothing is lost.** Close the tab, restart, or say *continue my agent* later, and the page picks up where you left off. Prefer chat? Choose **Continue in chat** anytime.
+
+The page runs only on your computer (`127.0.0.1`), behind a private link, and your session is saved in `~/.claude/agent-builder/sessions/`.
+
+<p align="center"><img src="docs/interactive-builder.png" alt="Interactive Builder page: a question with answer chips, a text box with a mic button, and the Agent Card filling in on the right" width="720"></p>
+
 ### Agents that need your expertise (workflow mode)
 
 Some agents have to make decisions the way *you* would at several steps of a job: a contractor's intake → estimate → bid → change orders, a bookkeeper's month-end close, a recruiter's screen → interview → offer. When the builder spots this, it switches to **workflow mode**:
@@ -94,7 +108,9 @@ In Claude Code:
 /agent-builder:create-agent
 ```
 
-You can also just say *"I want to build an agent that…"* and Claude will pick up the skill.
+You can also just say *"I want to build an agent that…"* and Claude will pick up the skill. In Claude Code, it will offer to open the **Interactive Builder** page (recommended), or you can stay in chat.
+
+To preview the page without building anything, open `plugins/agent-builder/skills/create-agent/assets/builder-template.html` in your browser. It shows a sample interview.
 
 ## Example
 
@@ -121,13 +137,16 @@ plugins/agent-builder/
     │   ├── output-formats.md            # file formats, install locations, agent-brief.md
     │   ├── flow-preview.md              # the visual flow diagram step
     │   ├── test-cases.md                # generating, collecting, running, and grading tests
+    │   ├── interactive-builder.md       # the Interactive Builder page: the loop, messages, and events
     │   └── glossary.md                  # plain-language explanations of technical terms
     ├── assets/
+    │   ├── builder-template.html        # the Interactive Builder page (type or speak your answers)
     │   ├── flow-template.html           # the Flow Preview diagram template
     │   ├── dashboard-template.html      # the My Agents dashboard template
     │   └── test-report-template.html    # the visual test report template
     └── scripts/
         ├── extract_conversations.py     # reads Claude/ChatGPT exports and Claude Code sessions
+        ├── builder_server.py            # runs the Interactive Builder page on your computer
         ├── render_flow.py               # renders the Flow Preview (and highlights changes)
         ├── render_test_report.py        # renders the visual test report
         ├── agent_registry.py            # the My Agents registry and dashboard
@@ -140,6 +159,12 @@ To add a template, add a section to `references/templates.md`. To change the int
 
 ```
 claude plugin validate .
+```
+
+If you change the Interactive Builder page or `builder_server.py`, also run its end-to-end test (needs Node and Playwright with Chromium):
+
+```
+node tests/interactive-builder.e2e.js
 ```
 
 ## License
