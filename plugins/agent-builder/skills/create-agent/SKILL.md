@@ -169,6 +169,7 @@ The Flow Preview, the My Agents dashboard, and the test report give users ready-
 | Phrase | Do this |
 |---|---|
 | `how do I use <id>` | Show the "▶️ How to use it" block for that agent. In Claude Code, run `scripts/agent_registry.py how <id>` and read its `HOW-TO-USE.md` for setup details |
+| `add how-to-use for <id>` · `add how-to-use for all my agents` | "Adding how-to-use to an existing agent" (below) |
 | `update <id>` | "Updating an existing agent" (below) |
 | `run tests for <id>` · `add tests for <id>` · `add a test for <id>` · `show my test report` | Phase 6 for that agent |
 | `fix failing tests for <id>` | Load its latest `tests/test-results.json`, explain each failure plainly, apply the suggested fixes with the user's OK, then re-run all tests |
@@ -181,6 +182,18 @@ The Flow Preview, the My Agents dashboard, and the test report give users ready-
 If the user wants to change an agent they already have: find it in My Agents by name or id (its `brief_path` points at `agent-brief.md`), or load it as context (`agent-brief.md`, a subagent `.md` file, a `SKILL.md`, Project instructions, or an installed agent under `~/.claude/agents/` or `.claude/agents/` in Claude Code). Rebuild the Agent Card from it (and the playbook from `playbook.md`, if there is one), ask what they want to change, then continue at Phase 3 → Flow Preview → test drive → build → tests. Keep the same id unless they want a new one. After any change, re-run the existing tests in `tests/test-cases.json` so nothing that used to work breaks.
 
 If the user says **"continue my agent"**, look for `agent-brief.draft.md` (Claude Code) or ask them to paste their progress snapshot (claude.ai), and resume workflow mode at the next unfinished stage. If they want to **fill in ❓ items**, list them from `playbook.md`, take their answers, update the playbook, and re-run the tests.
+
+### Adding how-to-use to an existing agent
+
+Agents built before the "▶️ How to use it" step have no saved first message, so My Agents can only guess how to start them. This is bookkeeping, not a rebuild: don't rerun the interview, Flow Preview, test drive, or tests, and don't change the agent's instructions or files. For each agent (one, or every active agent without a saved first message when they say "all"; in Claude Code, `agent_registry.py list` marks these "no start message"):
+
+1. Read its `agent-brief.md` (from `brief_path`) and `HOW-TO-USE.md` (next to the brief), if they exist.
+2. Pick the **first message to type**: the "Try it"/first example in HOW-TO-USE.md, else the brief's first example request, made concrete for where it lives (for a subagent, "Use the <id> agent to …"; for a skill, `/<id>` or a natural request). If neither file has one, propose one from the Agent Card's job and mark it `(my guess, change it?)`. Pick 2–3 **examples** the same way.
+3. Show the "▶️ How to use it" block (format in `references/output-formats.md`) and ask for a thumbs-up or changes. For several agents, show them all and ask once.
+4. Save it: in Claude Code, `scripts/agent_registry.py set-usage <id> --start "…" --example "…" --example "…"`. This doesn't raise the version number. On claude.ai, add the `usage` field to the entry in `my-agents.json` and hand the file back.
+5. If `HOW-TO-USE.md` is missing, offer to write it next to `agent-brief.md` (shape at the end of `references/output-formats.md`), checking first that nothing is there.
+
+Then say they'll see it on the agent's card in My Agents (**Start using it**) and under **Details → How to use it**.
 
 If the user just wants to **run or add tests** for an existing agent, load the agent and its `tests/test-cases.json` and go straight to Phase 6.
 

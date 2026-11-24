@@ -397,6 +397,7 @@ function issues(a) {
   else if ((a._missing || []).length) out.push({sev: 3, icon: "alert", text: "File missing: " + a._missing[0], fix: "fix the missing file for " + a.id});
   if (testState(a) === "fail") out.push({sev: 3, icon: "alert", text: "Failed " + (t.total - t.passed) + " of " + t.total + " tests" + (t.method === "simulated" ? " (simulated)" : ""), fix: "fix failing tests for " + a.id});
   if (testState(a) === "none") out.push({sev: 1, icon: "help", text: "Not tested yet", fix: "add tests for " + a.id});
+  if (!(a.usage && String(a.usage.start || "").trim())) out.push({sev: 1, icon: "play", text: "No “how to start” saved yet", fix: "add how-to-use for " + a.id});
   return out;
 }
 function severity(a) { return issues(a).reduce((m, i) => Math.max(m, i.sev), 0); }
