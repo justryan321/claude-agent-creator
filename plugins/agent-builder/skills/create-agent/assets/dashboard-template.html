@@ -202,6 +202,15 @@
   .hist .fill.ok { background: var(--output); }
   .hist .n { text-align: right; }
   .links { display: flex; flex-wrap: wrap; gap: 8px; }
+  .try { display: flex; flex-direction: column; gap: 6px; font-size: 12.5px; color: var(--muted); background: var(--output-soft);
+    border-radius: 12px; padding: 8px 10px; }
+  .try .lbl { display: inline-flex; align-items: center; gap: 6px; color: var(--output); font-size: 11.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
+  .try .phrase { background: var(--surface); }
+  .how-dest { display: inline-flex; align-items: center; gap: 6px; margin: 4px 0 0; font-size: 13.5px; font-weight: 700; color: var(--text); }
+  ol.steps { margin: 0; padding-left: 22px; display: grid; gap: 6px; font-size: 13.5px; }
+  ol.steps li { padding-left: 2px; }
+  ol.steps li .phrase { margin-top: 4px; }
+  .examples { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
   .btn { display: inline-flex; align-items: center; gap: 6px; text-decoration: none; color: var(--brand); background: var(--brand-soft);
     border-radius: 9px; padding: 6px 10px; font-size: 13.5px; font-weight: 600; }
   .instr { white-space: pre-wrap; font-size: 13px; line-height: 1.55; background: var(--bg-accent); border-radius: 10px; padding: 10px 12px;
@@ -345,6 +354,39 @@ function copyButton(text, label) {
 /* A phrase the user can paste into the chat, with its own copy button. */
 function phrase(text) {
   const w = el("span", "phrase"); w.append(el("code", null, text), copyButton(text)); return w;
+}
+
+/* ---------- how to use it (mirrors how_steps() in agent_registry.py) ---------- */
+function startPhrase(a) {
+  const u = a.usage || {};
+  if (u.start && String(u.start).trim()) return String(u.start).trim();
+  const types = (a.destinations || []).map(d => d.type);
+  if (types.includes("skill")) return "/" + a.id;
+  if (types.includes("subagent")) return "Use the " + a.id + " agent to <what you need>";
+  return null;
+}
+/* Each step: [text, optional thing to copy]. */
+function howSteps(a) {
+  const start = startPhrase(a) || "your first request", out = [];
+  const where = a.scope === "project" ? ["Open Claude Code in your " + (projName(a) || "project") + " project (it only works there)."]
+    : ["Open Claude Code in any project."];
+  (a.destinations || []).forEach(d => {
+    const loc = String(d.location || "");
+    if (d.type === "subagent") out.push({type: d.type, steps: [where, ["Type this:", start],
+      ["Or type @ and pick " + a.id + " from the list."], ["To make it the main agent for a whole session, start Claude Code with:", "claude --agent " + a.id]]});
+    else if (d.type === "skill") out.push({type: d.type, steps: [where, ["Type the slash command, or just ask for the task:", start === "/" + a.id ? start : "/" + a.id],
+      ...(start !== "/" + a.id ? [["For example:", start]] : []),
+      ["On claude.ai (if you uploaded the skill): turn it on under Settings → Capabilities → Skills, then ask in any chat."]]});
+    else if (d.type === "claude-ai-project") {
+      const name = loc.includes(":") ? loc.split(":").slice(1).join(":").trim() : (a.name || a.id);
+      out.push({type: d.type, steps: [["Go to claude.ai and click Projects."], ["Open the project “" + name + "”."],
+        ["Start a new chat inside the project and type:", start]]});
+    }
+    else if (d.type === "standalone-app") out.push({type: d.type, steps: [["Open a terminal in its folder:", loc || "the agent's folder"],
+      ["Turn on its Python environment (Windows: .venv\\Scripts\\Activate.ps1):", "source .venv/bin/activate"],
+      ["Start it:", "python agent.py"], ["Then type:", start], ["Type quit to stop."]]});
+  });
+  return out;
 }
 
 /* ---------- what needs attention ---------- */
@@ -508,6 +550,14 @@ function card(a) {
   foot.append(testBadge(a), el("span", null, "Updated " + fmtDate(a.updated) + (a.version > 1 ? " · v" + a.version : "")));
   c.append(foot);
 
+  const sp = startPhrase(a);
+  if (sp && a.status !== "archived" && !a._unclear) {
+    const tr = el("div", "try"); const l = el("span", "lbl"); l.append(icon("play", "sm"), document.createTextNode("Start using it"));
+    tr.append(l, el("span", null, a.scope === "project" ? "In Claude Code, inside " + (projName(a) || "its project") + ", type:"
+      : (a.destinations || []).every(d => d.type === "claude-ai-project") ? "In a new chat inside its claude.ai Project, type:"
+      : (a.destinations || []).every(d => d.type === "standalone-app") ? "Run python agent.py in its folder, then type:" : "In Claude Code, type:"), phrase(sp));
+    c.append(tr);
+  }
   const ask = el("div", "ask"); ask.append(el("span", "lbl", "Ask the builder"));
   const ph = el("div", "phrases"); ph.append(phrase("update " + a.id), phrase(testState(a) === "none" ? "add tests for " + a.id : "run tests for " + a.id));
   ask.append(ph); c.append(ask);
@@ -550,6 +600,25 @@ function openDetails(a, from) {
   top.append(tt, close); inner.append(top);
 
   const section = (title, ic) => { const s = el("section", "d-sec"); const t = el("h3"); t.append(icon(ic, "sm"), document.createTextNode(title)); s.append(t); inner.append(s); return s; };
+
+  // How to use it
+  const how = howSteps(a);
+  const hs = section("How to use it", "play");
+  if (!how.length) hs.append(el("p", "muted", "No place to use it is recorded yet. Say “update " + a.id + "” to set it up."));
+  how.forEach(g => {
+    const m = DEST[g.type] || {label: g.type, icon: "package"};
+    { const t = el("p", "how-dest"); t.append(icon(m.icon, "sm"), document.createTextNode(m.label)); hs.append(t); }
+    const ol = el("ol", "steps");
+    g.steps.forEach(([text, code]) => { const li = el("li", null, text); if (code) { li.append(el("br"), phrase(code)); } ol.append(li); });
+    hs.append(ol);
+  });
+  const ex = (a.usage || {}).examples || [];
+  if (ex.length) {
+    hs.append(el("p", "how-dest", "Try these first"));
+    const box = el("div", "examples"); ex.forEach(x => box.append(phrase(x))); hs.append(box);
+  }
+  if (a._guide_url) { const lk = el("div", "links"); const l = el("a", "btn"); l.href = a._guide_url; l.target = "_blank"; l.rel = "noopener";
+    l.append(icon("book", "sm"), document.createTextNode("Open the full guide (HOW-TO-USE.md)")); lk.append(l); hs.append(lk); }
 
   // Where it works
   const w = section("Where it works", "globe");
@@ -605,7 +674,7 @@ function openDetails(a, from) {
   const ask = section("Ask the builder", "message");
   ask.append(el("p", "muted", "Copy a phrase and paste it into your chat with Claude."));
   const ph = el("div", "phrases col");
-  ["update " + a.id, testState(a) === "none" ? "add tests for " + a.id : "run tests for " + a.id, "add a test for " + a.id,
+  ["how do I use " + a.id, "update " + a.id, testState(a) === "none" ? "add tests for " + a.id : "run tests for " + a.id, "add a test for " + a.id,
    "tag " + a.id + " as work", a.status === "archived" ? "restore " + a.id : "archive " + a.id].forEach(x => ph.append(phrase(x)));
   ask.append(ph);
 

@@ -56,9 +56,10 @@ The dashboard has:
 - search, a sort menu, and filters (active/archived, where it lives, tags)
 - a System / Light / Dark theme switch, remembered in that browser
 - a card per agent with one-click **Copy** buttons on the phrases to paste into the chat
-- a **Details** panel per agent: full file paths, test history, a preview of its instructions, and links to its Flow Preview and test report.
+- a **Start using it** box on each card with the exact first message to type (from the entry's `usage.start`)
+- a **Details** panel per agent: **How to use it** (step by step for each place it lives, example requests, and a link to its `HOW-TO-USE.md`), full file paths, test history, a preview of its instructions, and links to its Flow Preview and test report.
 
-Each card shows what the agent does, its abilities, test status, tags, and notes.
+Each card shows what the agent does, how to start using it, its abilities, test status, tags, and notes.
 
 ## 3. Offer actions
 
@@ -67,6 +68,7 @@ Ask what they'd like to do, offering only what makes sense, e.g. "Want to update
 | They want to… | Do this |
 |---|---|
 | **See details** of one | `check <id>` (where it works, and each file's full path with ✅ / ❌ missing), then summarize it in plain words: job, where it lives, abilities, last test, notes. Use `show <id>` for the raw entry. |
+| **Use it** ("how do I use…", "how do I start…") | Run `how <id>` and show the steps in plain words: where to go, the exact first message to type, and examples to try. If it lives in another project, say to open that project first. For setup details (knowledge files, API key, Project instructions), read the `HOW-TO-USE.md` path it prints. On claude.ai, build the same steps from the entry's `destinations` and `usage`. |
 | **Change / improve** one | Hand off to the Agent Builder's "update my agent" flow (`/agent-builder:create-agent`), loading the agent from its `brief_path` (or the file at its destination). Full paths mean this works from any project. For a project-only agent, mention that testing it live works best from inside its project. The builder re-registers it afterwards. |
 | **Run its tests** / **add a test** | Hand off to the Agent Builder's Phase 6 with that agent's `tests/test-cases.json` (in the folder holding `agent-brief.md`). Results are saved with `set-tests`. |
 | **Tag** it | `tag <id> --add work clients` / `--remove old`. Suggest a few tags if they're unsure (work, personal, business, team, experiment). |

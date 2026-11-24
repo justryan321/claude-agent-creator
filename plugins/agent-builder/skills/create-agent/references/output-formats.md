@@ -24,6 +24,11 @@ Every agent you build or update is recorded in the user's **My Agents** registry
     {"type": "subagent | skill | claude-ai-project | standalone-app", "location": "<FULL path of the installed file or folder, or 'claude.ai Project: <name>'>"}
   ],
   "brief_path": "<absolute path to agent-brief.md, or 'kept by user' on claude.ai>",
+  "usage": {
+    "start": "<the exact first message to type, e.g. 'Use the page-summarizer agent to summarize https://example.com/pricing' or '/meeting-notes'>",
+    "examples": ["<example request 1>", "<example request 2>", "<tricky example>"],
+    "guide_path": "<full path to HOW-TO-USE.md; leave out if it sits next to agent-brief.md, or on claude.ai>"
+  },
   "tags": [],
   "notes": ""
 }
@@ -34,8 +39,36 @@ Every agent you build or update is recorded in the user's **My Agents** registry
   - `"personal"` = installed "just for me, in all projects" (under `~/.claude/`), a standalone app, or a claude.ai Project.
   - `"project"` = installed "only in this project" (under `<project>/.claude/`). Set `project` to that project's folder (the top of the repository, i.e. `git rev-parse --show-toplevel`, or the current folder if it isn't a git repository). The install path must be inside it.
 - Use one `destinations` item per place it lives.
+- **Always fill `usage`.** `start` is the same first message you tell the user in "▶️ How to use it" (below), and `examples` are the "Try these first" requests from HOW-TO-USE.md. The My Agents dashboard shows them as a **Start using it** box on the agent's card and a step-by-step **How to use it** section in its Details panel, and `agent_registry.py how <agent-id>` prints the same steps in chat.
 - Leave `tests` out; Phase 6 records them with `set-tests`. On an update, tags, notes, and the creation date are kept automatically.
 - Offer one or two tags based on the job ("work", "business", "personal"), only if the user wants them.
+
+## Always included: "▶️ How to use it" (in the chat and in HOW-TO-USE.md)
+
+Building the files is not the finish line: the user must leave knowing **exactly how to start using the agent**. Always write `HOW-TO-USE.md` (shape at the end of this file), and right after the agent is built or installed, show this block **in the chat**, before testing starts. Fill it from the matching "HOW-TO-USE.md section" of each chosen destination below, using the real names and paths, not placeholders:
+
+```
+▶️ How to use <Display Name>
+
+<Destination label, e.g. "In Claude Code (helper agent)">
+1. <where to go, e.g. "Open Claude Code in any project" or "Open Claude Code in acme-site (it only works there)">
+2. <exactly what to type, e.g. "Type: Use the page-summarizer agent to summarize https://example.com/pricing">
+3. <one more way, if any, e.g. "Or type @ and pick page-summarizer">
+
+<repeat for each destination>
+
+Try these first:
+- "<example request 1>"
+- "<tricky example>" (watch how it handles this one)
+
+📄 Full guide: <full path to HOW-TO-USE.md, or "the HOW-TO-USE.md file above">
+🗂️ These steps are also in My Agents: open the agent's **Details** → **How to use it**.
+```
+
+- Keep it to the steps the user still has to do. If you installed it for them, start at "open/type"; don't repeat install steps.
+- If something must happen before it works (paste instructions into a Project, upload knowledge files, add an API key to `.env`, turn on a skill), make that step 1 and say it plainly.
+- In the Wrap-up, repeat only the first message to type and the guide's location.
+- If the user later asks "how do I use <agent>?" (or pastes `how do I use <agent-id>` from the dashboard), show this block again. In Claude Code, `agent_registry.py how <agent-id>` prints it from My Agents; also read the agent's `HOW-TO-USE.md` for setup details.
 
 ## Always included: tests
 
@@ -430,6 +463,7 @@ Your agent's behavior lives in its instructions (<file name>). Edit that text in
 - [ ] Instructions include the boundaries, handoff, and situation-specific additions from `writing-instructions.md`.
 - [ ] Test-drive feedback is reflected in the instructions.
 - [ ] HOW-TO-USE.md has steps for every chosen destination and 2–3 example requests.
+- [ ] The "▶️ How to use it" block was shown in the chat with the exact first message to type, and the My Agents entry has a matching `usage.start` and `usage.examples`.
 - [ ] No API keys, passwords, or personal data are written into any file (re-check imported context).
 - [ ] `agent-brief.md` is included and matches the final instructions.
 - [ ] The agent is registered in My Agents (`upsert` done, or `my-agents.json` handed back on claude.ai).
